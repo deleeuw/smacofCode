@@ -1,0 +1,32 @@
+nobj = 4
+ndim = 2
+init = 1
+cmajor = 0
+width = 15
+precision = 10
+itmax = 100
+haveweights = 1
+epsi = 10
+verbose = 1
+ditmax = 5
+depsi = 6
+dverbose = 1
+kitmax = 5
+kepsi = 10
+kverbose = 1
+degree = 3
+ordinal = 0
+haveknots = 2
+ninner = 3
+writefile = 0
+labels = 1
+dohessian = 0
+dobmat = 0
+checkkt = 0
+anchor = 0
+origin = 0
+
+
+
+
+
