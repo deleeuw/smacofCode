@@ -1,4 +1,4 @@
-library(splines)
+library(splines2)
 
 source("smacofReadData.R")
 source("smacofConvert.R")
@@ -11,6 +11,9 @@ smacofRR <- function(name) {
   itel <- 1
   smacofReadParameters(name, environment())
   eps <- 10 ^ -epsi
+  if (haveknots == 0) {
+    ninner = 0
+  }
   delta <- smacofReadDissimilarities(name)
   minDelta <- min(delta)
   maxDelta <- max(delta)
@@ -28,7 +31,7 @@ smacofRR <- function(name) {
   }
   innerKnots <- smacofMakeInnerKnots(haveknots, ninner, evec, name)
   basis <-
-    bs(evec,
+    bSpline(evec,
        knots = innerKnots,
        degree = degree,
        intercept = TRUE)
@@ -126,8 +129,13 @@ smacofRR <- function(name) {
     itel <- itel + 1
   }
   h <- list(
+    nobj = nobj,
+    ndim = ndim,
+    name = name,
     snew = snew,
     itel = itel,
+    labels = labels,
+    xnew = hg$xnew,
     evec = evec,
     dvec = dvec,
     wvec = wvec,
@@ -135,9 +143,11 @@ smacofRR <- function(name) {
     haveweights = haveweights,
     ordinal = ordinal,
     degree = degree,
+    resolution = resolution,
     innerKnots = innerKnots,
+    knotlines = knotlines,
+    anchor = anchor,
     coef = coef
   )
-  smacofShepardPlot(h)
   return(h)
 }

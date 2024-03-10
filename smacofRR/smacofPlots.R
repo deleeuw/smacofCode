@@ -1,27 +1,36 @@
 smacofShepardPlot <- function(h) {
   maxDelta <- max(h$delta)
   minDelta <- min(h$delta)
-  dknots <- (maxDelta - minDelta) * h$innerKnots + minDelta
+  if (h$anchor) {
+    dknots = maxDelta * h$innerKnots
+  } else {
+    dknots <- (maxDelta - minDelta) * h$innerKnots + minDelta
+  }
   odelta <- order(h$delta)
   x <- h$delta[odelta]
   y <- h$evec[odelta]
-  plot(x, y, col = "RED", xlab = "delta", ylab = "dhat and dist")
+  plot(x,
+       y,
+       col = "RED",
+       xlab = "delta",
+       ylab = "dhat and dist")
   points(x, h$dvec[odelta], col = "BLUE")
-  for (i in 1:length(dknots)) {
-    abline(v = dknots[i])
+  if (h$knotlines) {
+    for (i in 1:length(dknots)) {
+      abline(v = dknots[i])
+    }
   }
-  x <- seq(0, 1, length = 100)
-  dx <- (maxDelta - minDelta) * x + minDelta
-  basis <- bs(x,
-     knots = h$innerKnots,
-     degree = h$degree,
-     intercept = TRUE)
-  if (h$haveweights) {
-    bsums = colSums(h$wvec * (basis ^ 2))
+  if (length(h$innerKnots) == 0) {
+    innerKnots <- NULL
   } else {
-    bsums = colSums(basis ^ 2)
+    innerKnots <- h$innerKnots
   }
-  basis <- basis[, which(bsums > 0)]
+  x <- seq(0, 1, length = h$resolution)
+  dx <- (maxDelta - minDelta) * x + minDelta
+  basis <- bSpline(x,
+                   knots = innerKnots,
+                   degree = h$degree,
+                   intercept = TRUE)
   if (h$ordinal) {
     basis <-
       t(apply(basis, 1, function(x)
@@ -29,8 +38,55 @@ smacofShepardPlot <- function(h) {
           x
         )))))
   }
-  print(dim(basis))
-  print(h$coef)
   dy <- drop(basis %*% h$coef)
-  lines(dx, dy, type = "l", lwd = 3, col = "RED")
+  if (h$degree == 0) {
+    smacofPlotStepFunction(dx, dy, dknots, maxDelta)
+  } else {
+    lines(dx,
+          dy,
+          type = "l",
+          lwd = 3,
+          col = "RED")
+  }
+}
+
+smacofPlotStepFunction <- function(dx, dy, dknots, maxDelta) {
+  nknots <- length(dknots)
+  y <- dy[which(dx <= dknots[1])][1]
+  lines(c(0, dknots[1]), c(y, y), lwd = 3, col = "RED")
+  for (i in 1:(nknots - 1)) {
+    y <- dy[which((dx <= dknots[i + 1]) & (dx > dknots[i]))][1]
+    lines(c(dknots[i], dknots[i + 1]),
+          c(y, y),
+          lwd = 3,
+          col = "RED")
+  }
+  y <- dy[which(dx > dknots[nknots])][1]
+  lines(c(dknots[nknots], 2 * maxDelta),
+        c(y, y),
+        lwd = 3,
+        col = "RED")
+}
+
+smacofConfigurationPlot <- function(h) {
+  if (h$labels == 1) {
+    lbl <- smacofReadLabels(h$name)
+  }
+  if (h$labels == 2) {
+    lbl <- as.character(1:h$nobj)
+  }
+  xnew <- matrix(h$xnew, h$nobj, h$ndim, byrow = TRUE)
+  if (h$labels > 2) {
+    plot(xnew[, 1:2],
+         xlab = "dimension 1",
+         ylab = "dimension 2",
+         pch = h$labels, col = "RED", cex = 1.5)
+  }
+  else {
+    plot(xnew[, 1:2],
+         xlab = "dimension 1",
+         ylab = "dimension 2",
+         type = "n")
+    text(xnew[, 1:2], lbl, col = "RED", cex = 1.5)
+  }
 }
