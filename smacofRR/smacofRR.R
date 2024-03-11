@@ -6,6 +6,8 @@ source("smacofMakeInitialStuff.R")
 source("smacofMainLoops.R")
 source("smacofUtilities.R")
 source("smacofPlots.R")
+source("smacofWrite.R")
+source("smacofDerivatives.R")
 
 smacofRR <- function(name) {
   itel <- 1
@@ -34,6 +36,7 @@ smacofRR <- function(name) {
     bSpline(evec,
        knots = innerKnots,
        degree = degree,
+       Boundary.knots = c(0, 1),
        intercept = TRUE)
   if (ordinal) {
     basis <-
@@ -128,14 +131,14 @@ smacofRR <- function(name) {
     evec <- ht$evec
     itel <- itel + 1
   }
+  xnew <- hg$xnew
   h <- list(
     nobj = nobj,
     ndim = ndim,
     name = name,
     snew = snew,
     itel = itel,
-    labels = labels,
-    xnew = hg$xnew,
+    xnew = xnew,
     evec = evec,
     dvec = dvec,
     wvec = wvec,
@@ -143,9 +146,7 @@ smacofRR <- function(name) {
     haveweights = haveweights,
     ordinal = ordinal,
     degree = degree,
-    resolution = resolution,
     innerKnots = innerKnots,
-    knotlines = knotlines,
     anchor = anchor,
     coef = coef
   )

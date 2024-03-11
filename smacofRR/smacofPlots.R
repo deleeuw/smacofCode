@@ -1,92 +1,134 @@
-smacofShepardPlot <- function(h) {
-  maxDelta <- max(h$delta)
-  minDelta <- min(h$delta)
-  if (h$anchor) {
-    dknots = maxDelta * h$innerKnots
-  } else {
-    dknots <- (maxDelta - minDelta) * h$innerKnots + minDelta
-  }
-  odelta <- order(h$delta)
-  x <- h$delta[odelta]
-  y <- h$evec[odelta]
-  plot(x,
-       y,
-       col = "RED",
-       xlab = "delta",
-       ylab = "dhat and dist")
-  points(x, h$dvec[odelta], col = "BLUE")
-  if (h$knotlines) {
-    for (i in 1:length(dknots)) {
-      abline(v = dknots[i])
+smacofShepardPlot <-
+  function(h,
+           knotlines = TRUE,
+           colline = "RED",
+           colpoint = "BLUE",
+           resolution = 100,
+           lwd = 2,
+           cex = 1,
+           pch = 16) {
+    maxDelta <- max(h$delta)
+    minDelta <- min(h$delta)
+    if (h$anchor) {
+      dknots = maxDelta * h$innerKnots
+    } else {
+      dknots <- (maxDelta - minDelta) * h$innerKnots + minDelta
+    }
+    odelta <- order(h$delta)
+    x <- h$delta[odelta]
+    y <- h$evec[odelta]
+    plot(
+      x,
+      y,
+      col = colline,
+      xlab = "delta",
+      ylab = "dhat and dist",
+      cex = cex,
+      pch = pch
+    )
+    points(x,
+           h$dvec[odelta],
+           col = colpoint,
+           cex = cex,
+           pch = pch)
+    if (knotlines) {
+      for (i in 1:length(dknots)) {
+        abline(v = dknots[i])
+      }
+    }
+    if (length(h$innerKnots) == 0) {
+      innerKnots <- NULL
+    } else {
+      innerKnots <- h$innerKnots
+    }
+    x <- seq(0, 1, length = resolution)
+    if (h$anchor == 0) {
+      dx <- (maxDelta - minDelta) * x + minDelta
+    } else {
+      dx = maxDelta * x
+    }
+    basis <- bSpline(
+      x,
+      knots = innerKnots,
+      degree = h$degree,
+      Boundary.knots = c(0, 1),
+      intercept = TRUE
+    )
+    if (h$ordinal) {
+      basis <-
+        t(apply(basis, 1, function(x)
+          rev(cumsum(rev(
+            x
+          )))))
+    }
+    dy <- drop(basis %*% h$coef)
+    if (h$degree == 0) {
+      smacofPlotStepFunction(dx, dy, dknots, maxDelta, colline, lwd)
+    } else {
+      lines(dx,
+            dy,
+            type = "l",
+            lwd = lwd,
+            col = colline)
     }
   }
-  if (length(h$innerKnots) == 0) {
-    innerKnots <- NULL
-  } else {
-    innerKnots <- h$innerKnots
-  }
-  x <- seq(0, 1, length = h$resolution)
-  dx <- (maxDelta - minDelta) * x + minDelta
-  basis <- bSpline(x,
-                   knots = innerKnots,
-                   degree = h$degree,
-                   intercept = TRUE)
-  if (h$ordinal) {
-    basis <-
-      t(apply(basis, 1, function(x)
-        rev(cumsum(rev(
-          x
-        )))))
-  }
-  dy <- drop(basis %*% h$coef)
-  if (h$degree == 0) {
-    smacofPlotStepFunction(dx, dy, dknots, maxDelta)
-  } else {
-    lines(dx,
-          dy,
-          type = "l",
-          lwd = 3,
-          col = "RED")
-  }
-}
 
-smacofPlotStepFunction <- function(dx, dy, dknots, maxDelta) {
-  nknots <- length(dknots)
-  y <- dy[which(dx <= dknots[1])][1]
-  lines(c(0, dknots[1]), c(y, y), lwd = 3, col = "RED")
-  for (i in 1:(nknots - 1)) {
-    y <- dy[which((dx <= dknots[i + 1]) & (dx > dknots[i]))][1]
-    lines(c(dknots[i], dknots[i + 1]),
+smacofPlotStepFunction <-
+  function(dx,
+           dy,
+           dknots,
+           maxDelta,
+           col = colline,
+           lwd = lwd) {
+    nknots <- length(dknots)
+    y <- dy[which(dx <= dknots[1])][1]
+    lines(c(0, dknots[1]), c(y, y), lwd = lwd, col = col)
+    for (i in 1:(nknots - 1)) {
+      y <- dy[which((dx <= dknots[i + 1]) & (dx > dknots[i]))][1]
+      lines(c(dknots[i], dknots[i + 1]),
+            c(y, y),
+            lwd = lwd,
+            col = col)
+    }
+    y <- dy[which(dx > dknots[nknots])][1]
+    lines(c(dknots[nknots], 2 * maxDelta),
           c(y, y),
-          lwd = 3,
-          col = "RED")
+          lwd = lwd,
+          col = col)
   }
-  y <- dy[which(dx > dknots[nknots])][1]
-  lines(c(dknots[nknots], 2 * maxDelta),
-        c(y, y),
-        lwd = 3,
-        col = "RED")
-}
 
-smacofConfigurationPlot <- function(h) {
-  if (h$labels == 1) {
-    lbl <- smacofReadLabels(h$name)
+smacofConfigurationPlot <-
+  function(h,
+           dim1 = 1,
+           dim2 = 2,
+           labels = 2,
+           pch = 16,
+           col = "RED",
+           cex = 1.5) {
+    if (labels == 1) {
+      lbl <- smacofReadLabels(h$name)
+    }
+    if (labels == 2) {
+      lbl <- as.character(1:h$nobj)
+    }
+    xnew <- matrix(h$xnew, h$nobj, h$ndim, byrow = TRUE)
+    if (labels == 3) {
+      plot(
+        xnew[, c(dim1, dim2)],
+        xlab = paste("dimension", dim1),
+        ylab = paste("dimension", dim2),
+        pch = pch,
+        col = col,
+        cex = cex
+      )
+    }
+    else {
+      plot(
+        xnew[, c(dim1, dim2)],
+        xlab = paste("dimension", dim1),
+        ylab = paste("dimension", dim2),
+        type = "n"
+      )
+      text(xnew[, 1:2], lbl, col = col, cex = cex)
+    }
   }
-  if (h$labels == 2) {
-    lbl <- as.character(1:h$nobj)
-  }
-  xnew <- matrix(h$xnew, h$nobj, h$ndim, byrow = TRUE)
-  if (h$labels > 2) {
-    plot(xnew[, 1:2],
-         xlab = "dimension 1",
-         ylab = "dimension 2",
-         pch = h$labels, col = "RED", cex = 1.5)
-  }
-  else {
-    plot(xnew[, 1:2],
-         xlab = "dimension 1",
-         ylab = "dimension 2",
-         type = "n")
-    text(xnew[, 1:2], lbl, col = "RED", cex = 1.5)
-  }
-}

@@ -5,8 +5,9 @@ smacofReadParameters <- function(name, envir) {
   rnms <- row.names(params)
   for (i in 1:npar) {
     x <- gsub(" ", "", rnms[i])
-    assign(x, as.integer(params[x, ]), envir = envir)
+    assign(x, as.integer(params[x, 1]), envir = envir)
   }
+  
 }
 
 smacofReadInitialConfiguration <- function(name) {
