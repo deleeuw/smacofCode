@@ -9,20 +9,18 @@ epsi = 10
 verbose = 1
 ditmax = 5
 depsi = 6
-dverbose = 0
+dverbose = 1
 kitmax = 5
 kepsi = 6
-kverbose = 0
-degree = 0
-ordinal = 1
-haveknots = 2 
-ninner = 50
+kverbose = 1
+degree = 1
+ordinal = 0
+haveknots = 0
+ninner = 0
 labels = 2
-dohessian = 0
-knotlines = 1
 checkkt = 0
-anchor = 0
-origin = 0
+anchor = 1
+origin = 1
 
 
 

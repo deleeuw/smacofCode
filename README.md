@@ -12,7 +12,7 @@ have the following properties.
 05. Inner knots for the B-splines can be read from a file, or equally spaced, or equally
     spaced on the percentile scale. Inner knots are simple.
 06. For polynomial transformations there are no inner knots and we use the
-    Bernstein basis.
+    Bernstein basis. This has interval as a special case.
 07. One outer iteration consists of a (bounded) number of inner iterations updating
     the configuration and a (bounded) number of inner iterations updating the
     transformation.
@@ -20,10 +20,12 @@ have the following properties.
 09. Input is from a parameter file and from data files for dissimilarities and weights
     (in the weighted case) and optionally for the initial configuration and the
     inner knots of the spline. All parameters are small integers.
-10. Optimization imposes the constraint that the configuration is centered and has unit
+10. Optimization actively imposes the constraint that the configuration is centered and has unit
     sum of squares. 
 11. Inner iterations for the configuration use the Guttman transform, inner iterations
     for the transformation use cyclic coordinate descent.
-12. The fitted splines can be constrained to go through the origin.
+12. The fitted splines can be constrained to go through the origin. Combined with degree
+    one this handles ratio data.
 13. Monotone splines in smacof are B-splines with monotone coefficients, a.k.a. I-splines.
 14. smacofRC uses a single .C() call to the computational engine. The rest is R.
+15. The backend and the frontend, written in R, are shared by smacofRR and smacofRC/

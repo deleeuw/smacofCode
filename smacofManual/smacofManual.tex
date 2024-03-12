@@ -207,32 +207,37 @@ TBD
 frequently. All suggestions for improvement are welcome. All Rmd, tex,
 html, pdf, R, and C files are in the public domain. Attribution will be
 appreciated, but is not required. The files can be found at
-\url{https://github.com/deleeuw/cSmacof}.
+\url{https://github.com/deleeuw/smacofCode}.
 
 \section{Introduction}\label{introduction}
 
-In Multidimensional Scaling (MDS) the data are
-dissimilarities between pairs of elements selected from
-a set of \(n\) objects \(\mathcal{O}=\{o_1,\cdots,o_n\}\). In
-Metric MDS we have numerical dissimilarity measures and we want to map
-the objects \(o_i\) into \(n\) points \(x_i\) in some metric space in such a way
+In \emph{Multidimensional Scaling (MDS)} the data consists of information about the similarity or dissimilarity between pairs of objects selected from a finite set \(\mathcal{O}=\{o_1,\cdots,o_n\}\).
+
+In \emph{metric MDS} we have numerical dissimilarity measures and we want to map
+the objects \(o_i\) into \(n\) points \(x_i\) of some metric space in such a way
 that the distances between the points approximate the dissimilarities
-between the objects. In p-dimensional Euclidean Metric MDS the metric space is \(\mathbb{R}^p\), the space of all \(p\)-tuples of real numbers, with the usual Euclidean distance.
+between the objects. In smacof the metric space is \(\mathbb{R}^p\), the space of all \(p\)-tuples of real numbers, and in the code documented in this manual we assume
+the distance is the usual Euclidean distance. In \emph{non-metric MDS} the information
+about the dissimilarities is incomplete. It is usually \emph{ordinal}, i.e.~it tells
+us in some way or another that some dissimilarties are larger or smaller than
+others. Somewhere between metric and non-metric MDS is MDS with \emph{missing data},
+in which some dissimilarities are known numbers while others are unknown. MDS with missing data is a form of \emph{distance matrix completion} (Fang and O'Leary (2012)).
 
 In the pioneering papers Kruskal (1964a) and Kruskal (1964b) the MDS problem
 was formulated for the first time as minimization of an explicit loss
 function, which measures the quality of the approximation of the
-dissimilarities by the distances. The loss function in Least Squares Metric Euclidean MDS
-is \begin{equation}
-\sigma(X):=\frac12\jis w_{ij}(\delta_{ij}-d_{ij}(X))^2.
+dissimilarities by the distances. The loss function in least squares metric Euclidean MDS
+is called \emph{raw stress} or \emph{Kruskal's raw stress} and is defined as
+\begin{equation}
+\sigma(X):=\frac12\sum w_{ij}(\delta_{ij}-d_{ij}(X))^2.
 \label{eq:stressdef}
 \end{equation}
+
 The symbol \(:=\) is used for definitions. In definition
-\eqref{eq:stressdef} the \(w_{ij}\) are known non-negative \emph{weights}, the \(\delta_{ij}\) are the known
-non-negative \emph{dissimilarities} between objects \(o_i\) and \(o_j\), and the
+\eqref{eq:stressdef} the \(w_{ij}\) are known non-negative \emph{weights}, the \(\delta_{ij}\) are the known non-negative \emph{dissimilarities} between objects \(o_i\) and \(o_j\), and the
 \(d_{ij}(X)\) are the \emph{distances} between the corresponding points \(x_i\)
-and \(x_j\). From now on we use ``metric MDS'' to
-mean Least Squares Metric Euclidean MDS.
+and \(x_j\). The summation is over all \(\binom{n}{2}\) pairs \((i,j)\) with \(j>i\), i.e.~over elements below the diagonal of the matrices \(W\) and \(\Delta\).
+From now on we use ``metric MDS'' to mean Least Squares Metric Euclidean MDS.
 
 The \(n\times p\) matrix \(X\), which has the coordinates \(x_i\)
 of the \(n\) points as its rows, is called the \emph{configuration}, where
@@ -242,7 +247,7 @@ map. Thus
 d_{ij}(X)=\sqrt{\sum_{s=1}^p(x_{is}-x_{js})^2}.
 \label{eq:ddef}
 \end{equation}
-The metric MDS problem (of dimension \(p\), for given \(W\) and \(\Delta\)
+The metric MDS problem (of dimension \(p\), for given \(W\) and \(\Delta\))
 is the minimization of \eqref{eq:stressdef} over the \(n\times p\)
 configurations \(X\).
 
@@ -258,17 +263,16 @@ metric MDS problems, so the irreducibility assumption causes no real
 loss of generality.
 
 The fact that the summation in \eqref{eq:stressdef} is over all \(j<i\)
-indicates that the diagonal elements of \(\Delta\) are missing (they are
-assumed to be zero) and the elements above the diagonal are missing as
+indicates that the diagonal elements of \(\Delta\) are not used (they are
+assumed to be zero) and the elements above the diagonal are not used as
 well (they are assumed to be equal to the corresponding elements below
-the diagonal). The factor \(\frac12\) in definition
+the diagonal). The somewhat mysterious factor \(\frac12\) in definition
 \eqref{eq:stressdef} is there because it simplifies some of the formulas in
 later sections of this paper.
 
-Kruskal was not primarily interested in
-metric MDS and loss function \eqref{eq:stressdef}. His papers are really about
-non-metric MDS, by which we mean Least Squares Non-metric Euclidean MDS. Non-metric MDS differs
-from metric MDS because we have incomplete information about the
+Kruskal was not really interested in
+metric MDS and the ``raw'' loss function \eqref{eq:stressdef}. His papers are really about
+non-metric MDS, by which we mean least squares non-metric Euclidean MDS. Non-metric MDS differs from metric MDS because we have incomplete information about the
 dissimilarities. As we have seen, that if some dissimilarities are missing
 metric MDS can handle this by using zero weights. In some situations, however,
 we only know the rank order of the non-missing dissimilarities.
@@ -282,7 +286,7 @@ choose from the set of admissible \emph{quantifications}.
 
 In non-metric MDS the loss function becomes
 \begin{equation}
-\sigma(X,\hat D):=\frac12\jis w_{ij}(\hat d_{ij}-d_{ij}(X))^2,
+\sigma(X,\hat D):=\frac12\sum w_{ij}(\hat d_{ij}-d_{ij}(X))^2,
 \label{eq:rawstressdef}
 \end{equation}
 where \(\hat D\) are now the quantified or transformed dissimilarities. In
@@ -295,14 +299,169 @@ we will consider various other choices for the set of admissible
 transformations. We will use the symbol \(\mathfrak{D}\) for the set of
 admissible transformations
 
-Kruskal calls loss function \eqref{eq:rawstressdef} \emph{raw stress}, which suggests
-that the definition of the non-metric MDS problem is not complete yet.
 The most familiar sets of admissible transformations (linear, polynomial, monotone)
-define convex cones with apex at the origin. Thus if \(\hat D\in\mathfrak{D}\) then
-so is \(\lambda\hat D\) for all \(\lambda\geq 0\). But this means that minimizing
+define convex cones with apex at the origin. This means that if \(\hat D\in\mathfrak{D}\) then
+so is \(\lambda\hat D\) for all \(\lambda\geq 0\). But consequently minimizing
 \eqref{eq:rawstressdef} over all \(\hat D\in\mathfrak{D}\) and over all
-configurations has the trivial solution \(\hat D=0\) and \(X=0\), which gives
-the trivial global minimum \(\sigma(X,\hat D)=0\). We need additional constraints to rule out this trivial solution, and in non-metric MDS this is done by choosing a \emph{normalization} that keeps the solution away from zero.
+configurations has the trivial solution \(\hat D=0\) and \(X=0\), corresponding with
+the global minimum \(\sigma(X,\hat D)=0\). We need additional constraints to rule out this trivial solution, and in non-metric MDS this is done by choosing a \emph{normalization} that keeps the solution away from zero.
+
+Kruskal's solution is to normalize the raw stress by defining
+\begin{equation}
+\sigma(X,\Delta):=\frac{\sum w_{ij}(\hat d_{ij}-d_{ij}(X))^2}{\sum w_{ij}d_{ij}^2(X)}.
+\label{eq:nstressdef}
+\end{equation}
+In fact in Kruskal's formulation there are no weights, and he actually takes the
+square root of \eqref{eq:nstressdef} to define \emph{Kruskal's stress}. The non-metric Euclidean MDS problem is to minimize loss function \eqref{eq:nstressdef} over all \(n\times p\)
+configurations \(X\) and all admissible disparities \(\Delta\).
+
+\subsection{Normalization}\label{normalization}
+
+Normalization in non-metric MDS has been discussed in detail in
+Kruskal and Carroll (1969) and De Leeuw (1975). In the terminology of
+De Leeuw (1975) there are \emph{explicit} and \emph{implicit} normalizations.
+
+In implicit normalization we minimize either
+\begin{equation}
+\sigma(X,\hat D):=\frac{\jis w_{ij}(\hat d_{ij} -d_{ij}(X))^2}{\jis w_{ij}^{\ }\hat d_{ij}^2}
+\label{eq:implicit1}
+\end{equation}
+or
+\begin{equation}
+\sigma(X,\hat D):=\frac{\jis w_{ij}(\hat d_{ij}-d_{ij}(X))^2}{\jis w_{ij}^{\ }d_{ij}^2(X) }
+\label{eq:implicit2}
+\end{equation}
+Kruskal (1964a) chooses definition \eqref{eq:implicit2} and calls the explicitly normalized
+loss function \emph{normalized stress}. In fact, he takes the square root, which
+does not change the minimization problem, and only considers the
+unweighted case. Note that we overload the symbol \(\sigma\) to denote any one
+of the least squares loss functions. It will always be clear from the
+text which \(\sigma\) we are talking about.
+
+In explicit normalization we minimize the raw stress \(\sigma(X,\hat D)\)
+from \eqref{eq:rawstressdef}, but we add the constraint
+\begin{equation}
+\jis w_{ij}^{\ }d_{ij}^2(X)=1,
+\label{eq:explicit1}
+\end{equation}
+or the constraint
+\begin{equation}
+\jis w_{ij}^{\ }\hat d_{ij}^2=1.
+\label{eq:explicit2}
+\end{equation}
+Kruskal and Carroll (1969) and De Leeuw (2019) show that these
+four normalizations all lead to essentially the same solution for \(X\)
+and \(\hat D\), up to scale factors dictated by the choice of
+normalization. It is also possible to normalize both \(X\) and \(\hat D\),
+either explicitly or implicitly, and again this will give the same
+solutions, suitably normalized. These invariance results assume the
+admissible transformations form a closed cone with apex at the origin,
+i.e.~if \(\hat D\) is admissible and \(\lambda\geq 0\) then \(\lambda\hat D\)
+is admissible as well. The matrices of Euclidean distances \(D(X)\) form a
+similar closed cone as well. The LSNE-MDS problem is to find an element of the
+\(\hat D\) cone and an element of the \(D(X)\) cone where the angle between
+the two is a small as possible.
+
+In the R version of smacof (De Leeuw and Mair (2009),
+Mair, Groenen, and De Leeuw (2022)) we use explicit normalization
+\eqref{eq:explicit2}. This is supported by the result, also due to
+De Leeuw (1975), that projection on the intersection of the cone of
+disparities and the sphere defined by \eqref{eq:explicit2} is equivalent
+to first projecting on the cone and then normalizing the projection (see
+also Bauschke, Bui, and Wang (2018)).
+
+In our version of non-metric MDS we need more flexibility. For algorithmic
+reasons that will become clear later on, we will go with the other explicit
+normalization \eqref{eq:explicit1} and minimize \(\sigma\) from
+\eqref{eq:rawstressdef} over normalized \(X\) and unnormalized \(\hat D\).
+For the final results the choice between \eqref{eq:explicit1} and
+\eqref{eq:explicit2} should not make a difference.
+
+\section{Some thoughts on ALS}\label{some-thoughts-on-als}
+
+I will take this opportunity to clear up some misunderstandings and confusions
+that have haunted the early development of non-metric MDS.
+
+\subsection{The Single-Phase approach}\label{the-single-phase-approach}
+
+In Kruskal (1964a) defines
+\begin{equation}
+\sigma(X):=\min_{\hat D\in\mathfrak{D}}\ \sigma(\hat D,X)=\sigma(X,\hat D(X)),
+\label{eq:project}
+\end{equation}
+where \(\sigma(\hat D,X)\) is defined by \eqref{eq:implicit2}.
+where the minimum is over admissible transformations. In definition
+\eqref{eq:project}
+\begin{equation}
+\hat D(X):=\mathop{\text{argmin}}_{\hat D\in\mathfrak{D}}\sigma(X, \hat D).
+\label{eq:optscal}
+\end{equation}
+Normalized stress defined by \eqref{eq:project} is now a function of \(X\) only. Under some
+conditions, which are true in Kruskal's definition of non-metric MDS,
+\begin{equation}
+\mathcal{D}\sigma(X)=\mathcal{D}_1\sigma(X,\hat D(X)),
+\label{eq:partials}
+\end{equation}
+where \(\mathcal{D}\sigma(X)\) are the derivatives of \(\sigma\) from \eqref{eq:project} and \(\mathcal{D}_1\sigma(X,\hat D(X))\) are the partial derivatives of \(\sigma\) from \eqref{eq:implicit2} with respect to \(X\). Thus the partials of \(\sigma\) from \eqref{eq:project} can be computed by evaluating the partials of \(\sigma\) from \eqref{eq:implicit2} with respect to \(X\) at \((X,\hat D(X))\). This has created much confusion in the past. The non-metric MDS problem is now to minimize \(\sigma\) from \eqref{eq:project}, which is a function of \(X\) alone.
+
+Guttman (1968) calls this the \emph{single-phase approach}. A variation of
+Kruskal's single-phase approach defines
+\[
+\sigma(X)=\jis w_{ij}(d_{ij}^\#(X)-d_{ij}(X))^2
+\]
+where the \(d_{ij}^\#(X)\) are \emph{Guttman's rank images}, i.e.~the
+permutation of the \(d_{ij}(X)\) that makes them monotone with the
+\(\delta_{ij}\) (Guttman (1968)). Or, alternatively, define
+\[
+\sigma(X):=\jis w_{ij}(d_{ij}^\%(X)-d_{ij}(X))^2
+\]
+where the \(\hat d_{ij}^\%(X)\) are \emph{Shepard's rank images}, i.e.~the
+permutation of the \(\delta_{ij}\) that makes them monotone with the
+\(d_{ij}(X)\) (Shepard (1962a), Shepard (1962b), De Leeuw (2017b)).
+
+Minimizing the Shepard and Guttman single-phase loss functions is
+computationally more complicated than Kruskal's \emph{monotone regression}
+approach, mostly because the rank-image transformations are not differentiable,
+and there is no analog of \eqref{eq:partials} and of the equivalence of
+the different implicit and explicit normalizations.
+
+\subsection{The Two-Phase Approach}\label{the-two-phase-approach}
+
+The \emph{two-phase approach} or \emph{alternating least squares (ALS)} approach
+alternates minimization of \(\sigma(\hat D,X)\) over \(X\) for our current
+best estimate of \(\hat D\) with minimization of \(\sigma(\hat D,X)\) over
+\(\Delta\in\mathfrak{D}\) for our current best value of \(X\). Thus an
+update from iteration \(k\) to iteration \(k+1\) looks like
+\begin{align}
+\hat D^{(k)}&=\mathop{\text{argmin}}_{\hat D\in\mathfrak{D}}\sigma(\hat D,X^{(k)}),\label{eq:step1}\\
+X^{(k+1)}&=\mathop{\text{argmin}}_X\sigma(\hat D^{(k)},X).\label{eq:step2}
+\end{align}
+This ALS approach to MDS was in the air since the early
+(unsuccessful) attempts around 1968 of Young and De Leeuw to combine
+Torgerson's classic metric MDS method with Kruskal's monotone regression
+transformation. All previous implementations of non-metric smacof
+use the two-phase approach, and we will do the same in this paper.
+
+As formulated, however, there are some problems with the ALS algorithm.
+Step \eqref{eq:step1} is easy to carry out, using monotone regression.
+Step \eqref{eq:step2} means solving a metric scaling problem, which is an
+iterative proces that requires an infinite number of iterations. Thus,
+in the usual implementations, step \eqref{eq:step1} is combined with one
+of more iterations of a convergent iterative procedure for metric MDS,
+such as smacof. If we take only one of these \emph{inner iterations} the
+algorithm becomes indistinguishable from Kruskal's single-phase method.
+This has also created much confusion in the past.
+
+In the usual implementations of the ALS approach we solve the first
+subproblem \eqref{eq:step1} exactly, while we take only a single step
+towards the solution for given \(\hat D\) in the second phase
+\eqref{eq:step2}. If we have an infinite iterative procedure to compute
+the optimal \(\hat D\in\mathfrak{D}\) for given \(X\), then a more balanced
+approach would be to take several inner iterations in the first phase and
+several inner iterations in the second phase. How many of each, nobody
+knows. In our current implementation of smacof we take several inner
+iteration steps in the first phase and a single inner iteration step
+in the second phase.
 
 \section*{Notation and Terminology}\label{notation-and-terminology}
 \addcontentsline{toc}{section}{Notation and Terminology}
@@ -401,68 +560,6 @@ Also note that in the unweighted case with complete data
 
 \section{Smacof Loss}\label{smacof-loss}
 
-\subsection{Normalization}\label{normalization}
-
-Normalization in non-metric MDS has been discussed in detail in
-Kruskal and Carroll (1969) and De Leeuw (1975). In the terminology of
-De Leeuw (1975) there are \emph{explicit} and \emph{implicit} normalizations.
-
-In implicit normalization we minimize either
-\begin{equation}
-\sigma(X,\hat D):=\frac{\jis w_{ij}(\hat d_{ij} -d_{ij}(X))^2}{\jis w_{ij}^{\ }\hat d_{ij}^2}
-\label{eq:implicit1}
-\end{equation}
-or
-\begin{equation}
-\sigma(X,\hat D):=\frac{\jis w_{ij}(\hat d_{ij}-d_{ij}(X))^2}{\jis w_{ij}^{\ }d_{ij}^2(X) }
-\label{eq:implicit2}
-\end{equation}
-Kruskal (1964a) chooses definition \eqref{eq:implicit2} and calls the explicitly normalized
-loss function \emph{normalized stress}. In fact, he takes the square root, which
-does not change the minimization problem, and only considers the
-unweighted case. Note that we overload the symbol \(\sigma\) to denote any one
-of the least squares loss functions. It will always be clear from the
-text which \(\sigma\) we are talking about.
-
-In explicit normalization we minimize the raw stress \(\sigma(X,\hat D)\)
-from \eqref{eq:rawstressdef}, but we add the constraint
-\begin{equation}
-\jis w_{ij}^{\ }d_{ij}^2(X)=1,
-\label{eq:explicit1}
-\end{equation}
-or the constraint
-\begin{equation}
-\jis w_{ij}^{\ }\hat d_{ij}^2=1.
-\label{eq:explicit2}
-\end{equation}
-Kruskal and Carroll (1969) and De Leeuw (2019) show that these
-four normalizations all lead to essentially the same solution for \(X\)
-and \(\hat D\), up to scale factors dictated by the choice of
-normalization. It is also possible to normalize both \(X\) and \(\hat D\),
-either explicitly or implicitly, and again this will give the same
-solutions, suitably normalized. These invariance results assume the
-admissible transformations form a closed cone with apex at the origin,
-i.e.~if \(\hat D\) is admissible and \(\lambda\geq 0\) then \(\lambda\hat D\)
-is admissible as well. The matrices of Euclidean distances \(D(X)\) form a
-similar closed cone as well. The LSNE-MDS problem is to find an element of the
-\(\hat D\) cone and an element of the \(D(X)\) cone where the angle between
-the two is a small as possible.
-
-In the R version of smacof (De Leeuw and Mair (2009),
-Mair, Groenen, and De Leeuw (2022)) we use explicit normalization
-\eqref{eq:explicit2}. This is supported by the result, also due to
-De Leeuw (1975), that projection on the intersection of the cone of
-disparities and the sphere defined by \eqref{eq:explicit2} is equivalent
-to first projecting on the cone and then normalizing the projection (see
-also Bauschke, Bui, and Wang (2018)).
-
-In our version of non-metric MDS we need more flexibility. For algorithmic
-reasons that will become clear later on, we will go with the other explicit
-normalization \eqref{eq:explicit1} and minimize \(\sigma\) from
-\eqref{eq:rawstressdef} over normalized \(X\) and unnormalized \(\hat D\).
-For the final results the choice between \eqref{eq:explicit1} and
-\eqref{eq:explicit2} should not make a difference.
-
 \subsection{Derivatives}\label{derivatives}
 
 \subsubsection{Lagrangian}\label{lagrangian}
@@ -503,91 +600,13 @@ one interpretation to another.
 
 \section{Smacof Algorithm}\label{smacof-algorithm}
 
-\subsection{Some thoughts on ALS}\label{some-thoughts-on-als}
+\subsection{Structure}\label{structure}
 
-I will take this opportunity to clear up some misunderstandings and confusions
-that have haunted the early development of non-metric MDS.
+\subsubsection{Front End}\label{front-end}
 
-\subsubsection{The Single-Phase approach}\label{the-single-phase-approach}
+\subsubsection{Engine}\label{engine}
 
-In Kruskal (1964a) defines
-\begin{equation}
-\sigma(X):=\min_{\hat D\in\mathfrak{D}}\ \sigma(\hat D,X)=\sigma(X,\hat D(X)),
-\label{eq:project}
-\end{equation}
-where \(\sigma(\hat D,X)\) is defined by \eqref{eq:implicit2}.
-where the minimum is over admissible transformations. In definition
-\eqref{eq:project}
-\begin{equation}
-\hat D(X):=\mathop{\text{argmin}}_{\hat D\in\mathfrak{D}}\sigma(X, \hat D).
-\label{eq:optscal}
-\end{equation}
-Normalized stress defined by \eqref{eq:project} is now a function of \(X\) only. Under some
-conditions, which are true in Kruskal's definition of non-metric MDS,
-\begin{equation}
-\mathcal{D}\sigma(X)=\mathcal{D}_1\sigma(X,\hat D(X)),
-\label{eq:partials}
-\end{equation}
-where \(\mathcal{D}\sigma(X)\) are the derivatives of \(\sigma\) from \eqref{eq:project} and \(\mathcal{D}_1\sigma(X,\hat D(X))\) are the partial derivatives of \(\sigma\) from \eqref{eq:implicit2} with respect to \(X\). Thus the partials of \(\sigma\) from \eqref{eq:project} can be computed by evaluating the partials of \(\sigma\) from \eqref{eq:implicit2} with respect to \(X\) at \((X,\hat D(X))\). This has created much confusion in the past. The non-metric MDS problem is now to minimize \(\sigma\) from \eqref{eq:project}, which is a function of \(X\) alone.
-
-Guttman (1968) calls this the \emph{single-phase approach}. A variation of
-Kruskal's single-phase approach defines
-\[
-\sigma(X)=\jis w_{ij}(d_{ij}^\#(X)-d_{ij}(X))^2
-\]
-where the \(d_{ij}^\#(X)\) are \emph{Guttman's rank images}, i.e.~the
-permutation of the \(d_{ij}(X)\) that makes them monotone with the
-\(\delta_{ij}\) (Guttman (1968)). Or, alternatively, define
-\[
-\sigma(X):=\jis w_{ij}(d_{ij}^\%(X)-d_{ij}(X))^2
-\]
-where the \(\hat d_{ij}^\%(X)\) are \emph{Shepard's rank images}, i.e.~the
-permutation of the \(\delta_{ij}\) that makes them monotone with the
-\(d_{ij}(X)\) (Shepard (1962a), Shepard (1962b), De Leeuw (2017b)).
-
-Minimizing the Shepard and Guttman single-phase loss functions is
-computationally more complicated than Kruskal's \emph{monotone regression}
-approach, mostly because the rank-image transformations are not differentiable,
-and there is no analog of \eqref{eq:partials} and of the equivalence of
-the different implicit and explicit normalizations.
-
-\subsubsection{The Two-Phase Approach}\label{the-two-phase-approach}
-
-The \emph{two-phase approach} or \emph{alternating least squares (ALS)} approach
-alternates minimization of \(\sigma(\hat D,X)\) over \(X\) for our current
-best estimate of \(\hat D\) with minimization of \(\sigma(\hat D,X)\) over
-\(\Delta\in\mathfrak{D}\) for our current best value of \(X\). Thus an
-update from iteration \(k\) to iteration \(k+1\) looks like
-\begin{align}
-\hat D^{(k)}&=\mathop{\text{argmin}}_{\hat D\in\mathfrak{D}}\sigma(\hat D,X^{(k)}),\label{eq:step1}\\
-X^{(k+1)}&=\mathop{\text{argmin}}_X\sigma(\hat D^{(k)},X).\label{eq:step2}
-\end{align}
-This ALS approach to MDS was in the air since the early
-(unsuccessful) attempts around 1968 of Young and De Leeuw to combine
-Torgerson's classic metric MDS method with Kruskal's monotone regression
-transformation. All previous implementations of non-metric smacof
-use the two-phase approach, and we will do the same in this paper.
-
-As formulated, however, there are some problems with the ALS algorithm.
-Step \eqref{eq:step1} is easy to carry out, using monotone regression.
-Step \eqref{eq:step2} means solving a metric scaling problem, which is an
-iterative proces that requires an infinite number of iterations. Thus,
-in the usual implementations, step \eqref{eq:step1} is combined with one
-of more iterations of a convergent iterative procedure for metric MDS,
-such as smacof. If we take only one of these \emph{inner iterations} the
-algorithm becomes indistinguishable from Kruskal's single-phase method.
-This has also created much confusion in the past.
-
-In the usual implementations of the ALS approach we solve the first
-subproblem \eqref{eq:step1} exactly, while we take only a single step
-towards the solution for given \(\hat D\) in the second phase
-\eqref{eq:step2}. If we have an infinite iterative procedure to compute
-the optimal \(\hat D\in\mathfrak{D}\) for given \(X\), then a more balanced
-approach would be to take several inner iterations in the first phase and
-several inner iterations in the second phase. How many of each, nobody
-knows. In our current implementation of smacof we take several inner
-iteration steps in the first phase and a single inner iteration step
-in the second phase.
+\subsubsection{Back End}\label{back-end}
 
 \subsection{Spline Basis Details}\label{spline-basis-details}
 
@@ -737,9 +756,11 @@ Thus if
 \]
 It is sufficient that \(\alpha_i\leq\alpha_{i+1}\)
 
-\section{Background}\label{background}
+\subsubsection{Ordinal MDS}\label{ordinal-mds}
 
-\subsection{Splines}\label{splines}
+\subsubsection{Interval and Ratio MDS}\label{interval-and-ratio-mds}
+
+\subsubsection{The anchor and origin parameters}\label{the-anchor-and-origin-parameters}
 
 \subsection{Cyclic Coordinate Descent}\label{cyclic-coordinate-descent}
 
@@ -966,6 +987,9 @@ De Leeuw, J. 1975. {``{A Normalized Cone Regression Approach to Alternating Leas
 
 \bibitem[\citeproctext]{ref-deleeuw_mair_A_09c}
 De Leeuw, J., and P. Mair. 2009. {``{Multidimensional Scaling Using Majorization: SMACOF in R}.''} \emph{Journal of Statistical Software} 31 (3): 1--30. \url{https://www.jstatsoft.org/article/view/v031i03}.
+
+\bibitem[\citeproctext]{ref-fang_oleary_12}
+Fang, H., and D. P. O'Leary. 2012. {``Euclidean Distance Matrix Completion Problems Euclidean Distance Matrix Completion Problems Euclidean Distance Matrix Completion Problems.''} \emph{Oprtimization Methods and Software} 27 (4-5): 695--717.
 
 \bibitem[\citeproctext]{ref-guttman_68}
 Guttman, L. 1968. {``{A General Nonmetric Technique for Fitting the Smallest Coordinate Space for a Configuration of Points}.''} \emph{Psychometrika} 33: 469--506.
