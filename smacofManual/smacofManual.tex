@@ -1,0 +1,996 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+  12pt,
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+    \setmainfont[]{Times New Roman}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{5}
+% definitions for citeproc citations
+\NewDocumentCommand\citeproctext{}{}
+\NewDocumentCommand\citeproc{mm}{%
+  \begingroup\def\citeproctext{#2}\cite{#1}\endgroup}
+\makeatletter
+ % allow citations to break across lines
+ \let\@cite@ofmt\@firstofone
+ % avoid brackets around text for \cite:
+ \def\@biblabel#1{}
+ \def\@cite#1#2{{#1\if@tempswa , #2\fi}}
+\makeatother
+\newlength{\cslhangindent}
+\setlength{\cslhangindent}{1.5em}
+\newlength{\csllabelwidth}
+\setlength{\csllabelwidth}{3em}
+\newenvironment{CSLReferences}[2] % #1 hanging-indent, #2 entry-spacing
+ {\begin{list}{}{%
+  \setlength{\itemindent}{0pt}
+  \setlength{\leftmargin}{0pt}
+  \setlength{\parsep}{0pt}
+  % turn on hanging indent if param 1 is 1
+  \ifodd #1
+   \setlength{\leftmargin}{\cslhangindent}
+   \setlength{\itemindent}{-1\cslhangindent}
+  \fi
+  % set entry spacing
+  \setlength{\itemsep}{#2\baselineskip}}}
+ {\end{list}}
+\usepackage{calc}
+\newcommand{\CSLBlock}[1]{\hfill\break\parbox[t]{\linewidth}{\strut\ignorespaces#1\strut}}
+\newcommand{\CSLLeftMargin}[1]{\parbox[t]{\csllabelwidth}{\strut#1\strut}}
+\newcommand{\CSLRightInline}[1]{\parbox[t]{\linewidth - \csllabelwidth}{\strut#1\strut}}
+\newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
+\usepackage{tcolorbox}
+\usepackage{amssymb}
+\usepackage{yfonts}
+\usepackage{bm}
+\usepackage{kbordermatrix}
+
+\newtcolorbox{greybox}{
+  colback=white,
+  colframe=blue,
+  coltext=black,
+  boxsep=5pt,
+  arc=4pt}
+  
+\newcommand{\ds}[4]{\sum_{{#1}=1}^{#3}\sum_{{#2}=1}^{#4}}
+\newcommand{\us}[3]{\mathop{\sum\sum}_{1\leq{#2}<{#1}\leq{#3}}}
+
+\newcommand{\ol}[1]{\overline{#1}}
+\newcommand{\ul}[1]{\underline{#1}}
+
+\newcommand{\amin}[1]{\mathop{\text{argmin}}_{#1}}
+\newcommand{\amax}[1]{\mathop{\text{argmax}}_{#1}}
+
+\newcommand{\ci}{\perp\!\!\!\perp}
+
+\newcommand{\mc}[1]{\mathcal{#1}}
+\newcommand{\mb}[1]{\mathbb{#1}}
+\newcommand{\mf}[1]{\mathfrak{#1}}
+
+\newcommand{\eps}{\epsilon}
+\newcommand{\lbd}{\lambda}
+\newcommand{\alp}{\alpha}
+\newcommand{\df}{=:}
+\newcommand{\am}[1]{\mathop{\text{argmin}}_{#1}}
+\newcommand{\ls}[2]{\mathop{\sum\sum}_{#1}^{#2}}
+\newcommand{\ijs}{\mathop{\sum\sum}_{1\leq i<j\leq n}}
+\newcommand{\jis}{\mathop{\sum\sum}_{1\leq j<i\leq n}}
+\newcommand{\sij}{\sum_{i=1}^n\sum_{j=1}^n}
+	
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdfauthor={Jan de Leeuw - University of California Los Angeles},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Smacof at 50\\
+A Manual}
+\author{Jan de Leeuw - University of California Los Angeles}
+\date{Started February 21 2024, Version of March 12, 2024}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+TBD
+\end{abstract}
+
+{
+\setcounter{tocdepth}{4}
+\tableofcontents
+}
+\textbf{Note:} This is a working paper which will be expanded/updated
+frequently. All suggestions for improvement are welcome. All Rmd, tex,
+html, pdf, R, and C files are in the public domain. Attribution will be
+appreciated, but is not required. The files can be found at
+\url{https://github.com/deleeuw/cSmacof}.
+
+\section{Introduction}\label{introduction}
+
+In Multidimensional Scaling (MDS) the data are
+dissimilarities between pairs of elements selected from
+a set of \(n\) objects \(\mathcal{O}=\{o_1,\cdots,o_n\}\). In
+Metric MDS we have numerical dissimilarity measures and we want to map
+the objects \(o_i\) into \(n\) points \(x_i\) in some metric space in such a way
+that the distances between the points approximate the dissimilarities
+between the objects. In p-dimensional Euclidean Metric MDS the metric space is \(\mathbb{R}^p\), the space of all \(p\)-tuples of real numbers, with the usual Euclidean distance.
+
+In the pioneering papers Kruskal (1964a) and Kruskal (1964b) the MDS problem
+was formulated for the first time as minimization of an explicit loss
+function, which measures the quality of the approximation of the
+dissimilarities by the distances. The loss function in Least Squares Metric Euclidean MDS
+is \begin{equation}
+\sigma(X):=\frac12\jis w_{ij}(\delta_{ij}-d_{ij}(X))^2.
+\label{eq:stressdef}
+\end{equation}
+The symbol \(:=\) is used for definitions. In definition
+\eqref{eq:stressdef} the \(w_{ij}\) are known non-negative \emph{weights}, the \(\delta_{ij}\) are the known
+non-negative \emph{dissimilarities} between objects \(o_i\) and \(o_j\), and the
+\(d_{ij}(X)\) are the \emph{distances} between the corresponding points \(x_i\)
+and \(x_j\). From now on we use ``metric MDS'' to
+mean Least Squares Metric Euclidean MDS.
+
+The \(n\times p\) matrix \(X\), which has the coordinates \(x_i\)
+of the \(n\) points as its rows, is called the \emph{configuration}, where
+\(p\) is the \emph{dimension} of the Euclidean space in which we make the
+map. Thus
+\begin{equation}
+d_{ij}(X)=\sqrt{\sum_{s=1}^p(x_{is}-x_{js})^2}.
+\label{eq:ddef}
+\end{equation}
+The metric MDS problem (of dimension \(p\), for given \(W\) and \(\Delta\)
+is the minimization of \eqref{eq:stressdef} over the \(n\times p\)
+configurations \(X\).
+
+The weights \(w_{ij}\) can be used to quantify information about the
+precision or importance of the corresponding dissimilarities. Some of the weights may be zero, which can be used to code \emph{missing data}. If all weights are positive we have \emph{complete data}. If we have complete data, and all weights are equal to one, we have \emph{unweighted} metric MDS. Weights were only introduced in MDS in De Leeuw (1977), the pioneering papers by Shepard, Kruskal, and Guttman only consider the unweighted case.
+
+We assume
+throughout that the weights are \emph{irreducible} (De Leeuw (1977)). This means there
+is no partitioning of the index set \(I_n:=\{1,2,\cdots,n\}\)
+into subsets for which all between-subset weights are zero. A reducible
+metric MDS problems decomposes into a number of smaller independent
+metric MDS problems, so the irreducibility assumption causes no real
+loss of generality.
+
+The fact that the summation in \eqref{eq:stressdef} is over all \(j<i\)
+indicates that the diagonal elements of \(\Delta\) are missing (they are
+assumed to be zero) and the elements above the diagonal are missing as
+well (they are assumed to be equal to the corresponding elements below
+the diagonal). The factor \(\frac12\) in definition
+\eqref{eq:stressdef} is there because it simplifies some of the formulas in
+later sections of this paper.
+
+Kruskal was not primarily interested in
+metric MDS and loss function \eqref{eq:stressdef}. His papers are really about
+non-metric MDS, by which we mean Least Squares Non-metric Euclidean MDS. Non-metric MDS differs
+from metric MDS because we have incomplete information about the
+dissimilarities. As we have seen, that if some dissimilarities are missing
+metric MDS can handle this by using zero weights. In some situations, however,
+we only know the rank order of the non-missing dissimilarities.
+We do not know, or we refuse to use,
+their actual numeric values. Or, to put it differently, even if we have numerical dissimilarities we are looking
+for a \emph{transformation} of the non-missing dissimilarities, where the transformation
+is chosen from a set of admissible transformations (for instance
+from all linear or monotone transformations). If the dissimilarities
+are non-numerical, for example rank orders or partitionings, we
+choose from the set of admissible \emph{quantifications}.
+
+In non-metric MDS the loss function becomes
+\begin{equation}
+\sigma(X,\hat D):=\frac12\jis w_{ij}(\hat d_{ij}-d_{ij}(X))^2,
+\label{eq:rawstressdef}
+\end{equation}
+where \(\hat D\) are now the quantified or transformed dissimilarities. In
+MDS parlance they are also called \emph{pseudo-distances} or \emph{disparities}.
+Loss function \eqref{eq:rawstressdef} must be minimized over both
+configurations and disparities, with the condition that the disparities
+\(\hat D\) are an admissible transformation of the dissimilarities \(\Delta\).
+In Kruskal's non-metric MDS this means requiring monotonicity. In this paper
+we will consider various other choices for the set of admissible
+transformations. We will use the symbol \(\mathfrak{D}\) for the set of
+admissible transformations
+
+Kruskal calls loss function \eqref{eq:rawstressdef} \emph{raw stress}, which suggests
+that the definition of the non-metric MDS problem is not complete yet.
+The most familiar sets of admissible transformations (linear, polynomial, monotone)
+define convex cones with apex at the origin. Thus if \(\hat D\in\mathfrak{D}\) then
+so is \(\lambda\hat D\) for all \(\lambda\geq 0\). But this means that minimizing
+\eqref{eq:rawstressdef} over all \(\hat D\in\mathfrak{D}\) and over all
+configurations has the trivial solution \(\hat D=0\) and \(X=0\), which gives
+the trivial global minimum \(\sigma(X,\hat D)=0\). We need additional constraints to rule out this trivial solution, and in non-metric MDS this is done by choosing a \emph{normalization} that keeps the solution away from zero.
+
+\section*{Notation and Terminology}\label{notation-and-terminology}
+\addcontentsline{toc}{section}{Notation and Terminology}
+
+We discuss some standard MDS notation, first introduced in De Leeuw (1977). This
+notation is useful for the second phase of the ALS algorithm, in which solve the metric MDS problem of we minimizing unnormalized
+\(\sigma(X,\hat D)\) over \(X\) for fixed \(\hat D\). We will discuss the first ALS phase
+later in the paper.
+
+Start with the unit vectors \(e_i\) of length \(n\). They have a non-zero
+element equal to one in position \(i\), all other elements are zero. Think
+of the \(e_i\) as the columns of the identity matrix.
+
+Using the \(e_i\) we define for all \(i\not= j\) the matrices
+\begin{equation}
+A_{ij}:=(e_i-e_j)(e_i-e_j)'.
+\end{equation} The \(A_{ij}\) are of order \(n\), symmetric, doubly-centered, and of rank one. They have four non-zero elements. Elements
+\((i,i)\) and \((j,j)\) are equal to \(+1\), elements \((i,j)\) and \((j,i)\) are
+\(-1\).
+
+The importance of \(A_{ij}\) in MDS comes from the equation
+\begin{equation}
+d_{ij}^2(X)=\text{tr}\ X'A_{ij}X.
+\label{eq:dfroma}
+\end{equation}
+In addition we use the fact that the \(A_{ij}\) form a basis for the \(binom{n}{2}\)-dimensional linear space of all doubly-centered
+symmetric matrices.
+
+Expanding the square in the definition of stress gives
+\begin{equation}
+\sigma(X)=\frac12\{\jis w_k\delta_k^2-2\ \jis w_k\delta_kd_k(X)+\jis w_kd_k^2(X)\}.
+\label{eq:expand}
+\end{equation}
+It is convenient to have notation for the three separate
+components of stress from equation \eqref{eq:expand}. Define
+\begin{align}
+\eta_{\hat D}^2&=\jis w_{ij}\hat d_{ij}^2,\label{eq:condef}\\
+\rho(X)&=\jis w_{ij}\hat d_{ij}d_{ij}(X),\label{eq:rhodef}\\
+\eta^2(X)&=\jis w_{ij}d_{ij}(X)^2.\label{eq:etadef}
+\end{align} which lead to
+\begin{equation}
+\sigma(X)=\frac12\left\{\eta_{\hat D}^2-2\rho(X)+\eta^2(X)\right\}.
+\label{eq:stressshort}
+\end{equation}
+We also need
+\begin{equation}
+\lambda(X)=\frac{\rho(X)}{\eta(X)}.
+\label{eq:lambdadef}
+\end{equation}
+
+Using the \(A_{ij}\) makes it possible to give matrix expressions for \(\rho\)
+and \(\eta^2\). First
+\begin{equation}
+\eta^2(X)=\text{tr}\ X'VX,
+\label{eq:etamat}
+\end{equation}
+with
+\begin{equation}
+V:=\jis w_{ij}A_{ij}.
+\label{eq:vdef}
+\end{equation}
+In the same way
+\begin{equation}
+\rho(X)=\text{tr}\ X'B(X)X,
+\label{eq:rhomat}
+\end{equation}
+with
+\begin{equation}
+B(X):=\jis w_{ij}\frac{\delta_{ij}}{d_{ij}(X)}A_{ij}.
+\label{eq:bdef}
+\end{equation}
+Note that \(B\) is a function from the set of \(n\times p\) configurations into the set of symmetric doubly-dentered matrices of order \(n\). Because \(B(X)\) and \(V\) are
+non-negative linear combinations of the \(A_{ij}\) they are both positive semi-definite.
+Because \(W\) is assumed to be irreducible the matrix \(V\) has rank \(n-1\), with only
+vectors proportional to the vector \(e\) with all elements equal to one in its null-space (De Leeuw (1977)).
+
+Summarizing the results so far we have
+\begin{equation}
+\sigma(X)=\frac12\{\eta_{\hat D}^2-\text{tr}\ X'B(X)X+\text{tr}\ X'VX\}.
+\label{eq:sigmat}
+\end{equation}
+
+Next we define the \emph{Guttman transform} of a configuration \(X\), for given \(W\) and
+\(\Delta\), as
+\begin{equation}
+G(X)=V^+B(X)X,
+\label{eq:gudef}
+\end{equation}
+with \(V^+\) the Moore-Penrose inverse of \(V\). In our computations we use
+\[
+V^+=(V+\frac{1}{n}ee')^{-1}-\frac{1}{n}ee'
+\]
+Also note that in the unweighted case with complete data
+\(V=nJ\), where \(J\) is the centering matrix \(I-\frac{1}{n}ee'\), and thus
+\(V^+=\frac{1}{n}J\). The Guttman transform is then simply \(G(X)=n^{-1}B(X)X\).
+
+\section{Smacof Loss}\label{smacof-loss}
+
+\subsection{Normalization}\label{normalization}
+
+Normalization in non-metric MDS has been discussed in detail in
+Kruskal and Carroll (1969) and De Leeuw (1975). In the terminology of
+De Leeuw (1975) there are \emph{explicit} and \emph{implicit} normalizations.
+
+In implicit normalization we minimize either
+\begin{equation}
+\sigma(X,\hat D):=\frac{\jis w_{ij}(\hat d_{ij} -d_{ij}(X))^2}{\jis w_{ij}^{\ }\hat d_{ij}^2}
+\label{eq:implicit1}
+\end{equation}
+or
+\begin{equation}
+\sigma(X,\hat D):=\frac{\jis w_{ij}(\hat d_{ij}-d_{ij}(X))^2}{\jis w_{ij}^{\ }d_{ij}^2(X) }
+\label{eq:implicit2}
+\end{equation}
+Kruskal (1964a) chooses definition \eqref{eq:implicit2} and calls the explicitly normalized
+loss function \emph{normalized stress}. In fact, he takes the square root, which
+does not change the minimization problem, and only considers the
+unweighted case. Note that we overload the symbol \(\sigma\) to denote any one
+of the least squares loss functions. It will always be clear from the
+text which \(\sigma\) we are talking about.
+
+In explicit normalization we minimize the raw stress \(\sigma(X,\hat D)\)
+from \eqref{eq:rawstressdef}, but we add the constraint
+\begin{equation}
+\jis w_{ij}^{\ }d_{ij}^2(X)=1,
+\label{eq:explicit1}
+\end{equation}
+or the constraint
+\begin{equation}
+\jis w_{ij}^{\ }\hat d_{ij}^2=1.
+\label{eq:explicit2}
+\end{equation}
+Kruskal and Carroll (1969) and De Leeuw (2019) show that these
+four normalizations all lead to essentially the same solution for \(X\)
+and \(\hat D\), up to scale factors dictated by the choice of
+normalization. It is also possible to normalize both \(X\) and \(\hat D\),
+either explicitly or implicitly, and again this will give the same
+solutions, suitably normalized. These invariance results assume the
+admissible transformations form a closed cone with apex at the origin,
+i.e.~if \(\hat D\) is admissible and \(\lambda\geq 0\) then \(\lambda\hat D\)
+is admissible as well. The matrices of Euclidean distances \(D(X)\) form a
+similar closed cone as well. The LSNE-MDS problem is to find an element of the
+\(\hat D\) cone and an element of the \(D(X)\) cone where the angle between
+the two is a small as possible.
+
+In the R version of smacof (De Leeuw and Mair (2009),
+Mair, Groenen, and De Leeuw (2022)) we use explicit normalization
+\eqref{eq:explicit2}. This is supported by the result, also due to
+De Leeuw (1975), that projection on the intersection of the cone of
+disparities and the sphere defined by \eqref{eq:explicit2} is equivalent
+to first projecting on the cone and then normalizing the projection (see
+also Bauschke, Bui, and Wang (2018)).
+
+In our version of non-metric MDS we need more flexibility. For algorithmic
+reasons that will become clear later on, we will go with the other explicit
+normalization \eqref{eq:explicit1} and minimize \(\sigma\) from
+\eqref{eq:rawstressdef} over normalized \(X\) and unnormalized \(\hat D\).
+For the final results the choice between \eqref{eq:explicit1} and
+\eqref{eq:explicit2} should not make a difference.
+
+\subsection{Derivatives}\label{derivatives}
+
+\subsubsection{Lagrangian}\label{lagrangian}
+
+\subsubsection{Gradient}\label{gradient}
+
+\[
+\mathcal{D}\sigma(X)=VX-B(X)X
+\]
+
+\subsubsection{Hessian}\label{hessian}
+
+\[
+H_{st}(X)=\jis w_{ij}\frac{\delta_{ij}}{d_{ij}^3(X)}(x_{is}-x_{js})(x_{it}-x_{jt})A_{ij}
+\]
+\[
+\mathcal{D}_{st}\sigma(X)=\begin{cases}H_{st}(X)&\text{ if }s\not= t,\\
+V-B(X)+H_{st}&\text{ if }s= t.
+\end{cases}
+\]
+There are several ways to think of the Hessian. The simplest one
+(perhaps) is as an \(np\times np\) symmetric matrix (corresponding to
+column-major R vector of length \(\frac12 np(np+1)\)). This is what we
+would use for a straightforward version of Newton-Raphson.
+
+It is more elegant, however, to think of \(H\) as a symmetric super-matrix
+of order \(p\), with as elements \(n\times n\) matrices. And, for some
+purposes, such as the pseudo-confidence ellipsoids in De Leeuw (2017a), as
+a super-matrix of order \(n\) with as elements \(p\times p\) matrices. Both
+the super-matrix interpretations lead to four-dimensional arrays, the
+first a \(p\times p\times n\times n\) array, the second an
+\(n\times n\times p\times p\) array. The different interpretations lead to
+different ways to store the Hessian in memory, and to different ways to
+retrieve its elements. Of course we can write routines to transform from
+one interpretation to another.
+
+\subsection{Stationary Points}\label{stationary-points}
+
+\section{Smacof Algorithm}\label{smacof-algorithm}
+
+\subsection{Some thoughts on ALS}\label{some-thoughts-on-als}
+
+I will take this opportunity to clear up some misunderstandings and confusions
+that have haunted the early development of non-metric MDS.
+
+\subsubsection{The Single-Phase approach}\label{the-single-phase-approach}
+
+In Kruskal (1964a) defines
+\begin{equation}
+\sigma(X):=\min_{\hat D\in\mathfrak{D}}\ \sigma(\hat D,X)=\sigma(X,\hat D(X)),
+\label{eq:project}
+\end{equation}
+where \(\sigma(\hat D,X)\) is defined by \eqref{eq:implicit2}.
+where the minimum is over admissible transformations. In definition
+\eqref{eq:project}
+\begin{equation}
+\hat D(X):=\mathop{\text{argmin}}_{\hat D\in\mathfrak{D}}\sigma(X, \hat D).
+\label{eq:optscal}
+\end{equation}
+Normalized stress defined by \eqref{eq:project} is now a function of \(X\) only. Under some
+conditions, which are true in Kruskal's definition of non-metric MDS,
+\begin{equation}
+\mathcal{D}\sigma(X)=\mathcal{D}_1\sigma(X,\hat D(X)),
+\label{eq:partials}
+\end{equation}
+where \(\mathcal{D}\sigma(X)\) are the derivatives of \(\sigma\) from \eqref{eq:project} and \(\mathcal{D}_1\sigma(X,\hat D(X))\) are the partial derivatives of \(\sigma\) from \eqref{eq:implicit2} with respect to \(X\). Thus the partials of \(\sigma\) from \eqref{eq:project} can be computed by evaluating the partials of \(\sigma\) from \eqref{eq:implicit2} with respect to \(X\) at \((X,\hat D(X))\). This has created much confusion in the past. The non-metric MDS problem is now to minimize \(\sigma\) from \eqref{eq:project}, which is a function of \(X\) alone.
+
+Guttman (1968) calls this the \emph{single-phase approach}. A variation of
+Kruskal's single-phase approach defines
+\[
+\sigma(X)=\jis w_{ij}(d_{ij}^\#(X)-d_{ij}(X))^2
+\]
+where the \(d_{ij}^\#(X)\) are \emph{Guttman's rank images}, i.e.~the
+permutation of the \(d_{ij}(X)\) that makes them monotone with the
+\(\delta_{ij}\) (Guttman (1968)). Or, alternatively, define
+\[
+\sigma(X):=\jis w_{ij}(d_{ij}^\%(X)-d_{ij}(X))^2
+\]
+where the \(\hat d_{ij}^\%(X)\) are \emph{Shepard's rank images}, i.e.~the
+permutation of the \(\delta_{ij}\) that makes them monotone with the
+\(d_{ij}(X)\) (Shepard (1962a), Shepard (1962b), De Leeuw (2017b)).
+
+Minimizing the Shepard and Guttman single-phase loss functions is
+computationally more complicated than Kruskal's \emph{monotone regression}
+approach, mostly because the rank-image transformations are not differentiable,
+and there is no analog of \eqref{eq:partials} and of the equivalence of
+the different implicit and explicit normalizations.
+
+\subsubsection{The Two-Phase Approach}\label{the-two-phase-approach}
+
+The \emph{two-phase approach} or \emph{alternating least squares (ALS)} approach
+alternates minimization of \(\sigma(\hat D,X)\) over \(X\) for our current
+best estimate of \(\hat D\) with minimization of \(\sigma(\hat D,X)\) over
+\(\Delta\in\mathfrak{D}\) for our current best value of \(X\). Thus an
+update from iteration \(k\) to iteration \(k+1\) looks like
+\begin{align}
+\hat D^{(k)}&=\mathop{\text{argmin}}_{\hat D\in\mathfrak{D}}\sigma(\hat D,X^{(k)}),\label{eq:step1}\\
+X^{(k+1)}&=\mathop{\text{argmin}}_X\sigma(\hat D^{(k)},X).\label{eq:step2}
+\end{align}
+This ALS approach to MDS was in the air since the early
+(unsuccessful) attempts around 1968 of Young and De Leeuw to combine
+Torgerson's classic metric MDS method with Kruskal's monotone regression
+transformation. All previous implementations of non-metric smacof
+use the two-phase approach, and we will do the same in this paper.
+
+As formulated, however, there are some problems with the ALS algorithm.
+Step \eqref{eq:step1} is easy to carry out, using monotone regression.
+Step \eqref{eq:step2} means solving a metric scaling problem, which is an
+iterative proces that requires an infinite number of iterations. Thus,
+in the usual implementations, step \eqref{eq:step1} is combined with one
+of more iterations of a convergent iterative procedure for metric MDS,
+such as smacof. If we take only one of these \emph{inner iterations} the
+algorithm becomes indistinguishable from Kruskal's single-phase method.
+This has also created much confusion in the past.
+
+In the usual implementations of the ALS approach we solve the first
+subproblem \eqref{eq:step1} exactly, while we take only a single step
+towards the solution for given \(\hat D\) in the second phase
+\eqref{eq:step2}. If we have an infinite iterative procedure to compute
+the optimal \(\hat D\in\mathfrak{D}\) for given \(X\), then a more balanced
+approach would be to take several inner iterations in the first phase and
+several inner iterations in the second phase. How many of each, nobody
+knows. In our current implementation of smacof we take several inner
+iteration steps in the first phase and a single inner iteration step
+in the second phase.
+
+\subsection{Spline Basis Details}\label{spline-basis-details}
+
+ninner \(m\),
+degree \(k\),
+order \(d=k+1\),
+nknots \(m + 2d\),
+span \(p=d+m\)
+
+B-splines
+
+\(B_{i,k}(x)\) is zero outside \([t_i,t_{i+k+1}]\)
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{inner }\OtherTok{=} \FunctionTok{c}\NormalTok{(.}\DecValTok{1}\NormalTok{, .}\DecValTok{5}\NormalTok{, .}\DecValTok{55}\NormalTok{, .}\DecValTok{9}\NormalTok{)}
+\NormalTok{x }\OtherTok{=} \DecValTok{0}\SpecialCharTok{:}\DecValTok{10}\SpecialCharTok{/}\DecValTok{10}
+\FunctionTok{print}\NormalTok{(x)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ControlFlowTok{for}\NormalTok{ (degree }\ControlFlowTok{in} \DecValTok{0}\SpecialCharTok{:}\DecValTok{4}\NormalTok{) \{}
+\NormalTok{  ord }\OtherTok{\textless{}{-}}\NormalTok{ degree }\SpecialCharTok{+} \DecValTok{1}
+\NormalTok{  knots }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\FunctionTok{rep}\NormalTok{(}\DecValTok{0}\NormalTok{, ord), inner, }\FunctionTok{rep}\NormalTok{(}\DecValTok{1}\NormalTok{, ord))}
+\NormalTok{  a }\OtherTok{\textless{}{-}} \FunctionTok{splineDesign}\NormalTok{(}\AttributeTok{knots =}\NormalTok{ knots, }\AttributeTok{ord =}\NormalTok{ ord, }\AttributeTok{x =}\NormalTok{ x)}
+  \ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\DecValTok{11}\NormalTok{) \{}
+    \FunctionTok{cat}\NormalTok{(}\FunctionTok{formatC}\NormalTok{(x[i], }\AttributeTok{digits =} \DecValTok{2}\NormalTok{, }\AttributeTok{format =} \StringTok{"f"}\NormalTok{), }\StringTok{" *** "}\NormalTok{, }
+        \FunctionTok{formatC}\NormalTok{(a[i, ], }\AttributeTok{digits =} \DecValTok{4}\NormalTok{, }\AttributeTok{format =} \StringTok{"f"}\NormalTok{), }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\NormalTok{  \}}
+  \FunctionTok{cat}\NormalTok{(}\StringTok{"}\SpecialCharTok{\textbackslash{}n\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 0.00  ***  1.0000 0.0000 0.0000 0.0000 0.0000 
+## 0.10  ***  0.0000 1.0000 0.0000 0.0000 0.0000 
+## 0.20  ***  0.0000 1.0000 0.0000 0.0000 0.0000 
+## 0.30  ***  0.0000 1.0000 0.0000 0.0000 0.0000 
+## 0.40  ***  0.0000 1.0000 0.0000 0.0000 0.0000 
+## 0.50  ***  0.0000 0.0000 1.0000 0.0000 0.0000 
+## 0.60  ***  0.0000 0.0000 0.0000 1.0000 0.0000 
+## 0.70  ***  0.0000 0.0000 0.0000 1.0000 0.0000 
+## 0.80  ***  0.0000 0.0000 0.0000 1.0000 0.0000 
+## 0.90  ***  0.0000 0.0000 0.0000 0.0000 1.0000 
+## 1.00  ***  0.0000 0.0000 0.0000 0.0000 1.0000 
+## 
+## 
+## 0.00  ***  1.0000 0.0000 0.0000 0.0000 0.0000 0.0000 
+## 0.10  ***  0.0000 1.0000 0.0000 0.0000 0.0000 0.0000 
+## 0.20  ***  0.0000 0.7500 0.2500 0.0000 0.0000 0.0000 
+## 0.30  ***  0.0000 0.5000 0.5000 0.0000 0.0000 0.0000 
+## 0.40  ***  0.0000 0.2500 0.7500 0.0000 0.0000 0.0000 
+## 0.50  ***  0.0000 0.0000 1.0000 0.0000 0.0000 0.0000 
+## 0.60  ***  0.0000 0.0000 0.0000 0.8571 0.1429 0.0000 
+## 0.70  ***  0.0000 0.0000 0.0000 0.5714 0.4286 0.0000 
+## 0.80  ***  0.0000 0.0000 0.0000 0.2857 0.7143 0.0000 
+## 0.90  ***  0.0000 0.0000 0.0000 0.0000 1.0000 0.0000 
+## 1.00  ***  0.0000 0.0000 0.0000 0.0000 0.0000 1.0000 
+## 
+## 
+## 0.00  ***  1.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 
+## 0.10  ***  0.0000 0.8000 0.2000 0.0000 0.0000 0.0000 0.0000 
+## 0.20  ***  0.0000 0.4500 0.4944 0.0556 0.0000 0.0000 0.0000 
+## 0.30  ***  0.0000 0.2000 0.5778 0.2222 0.0000 0.0000 0.0000 
+## 0.40  ***  0.0000 0.0500 0.4500 0.5000 0.0000 0.0000 0.0000 
+## 0.50  ***  0.0000 0.0000 0.1111 0.8889 0.0000 0.0000 0.0000 
+## 0.60  ***  0.0000 0.0000 0.0000 0.6429 0.3413 0.0159 0.0000 
+## 0.70  ***  0.0000 0.0000 0.0000 0.2857 0.5714 0.1429 0.0000 
+## 0.80  ***  0.0000 0.0000 0.0000 0.0714 0.5317 0.3968 0.0000 
+## 0.90  ***  0.0000 0.0000 0.0000 0.0000 0.2222 0.7778 0.0000 
+## 1.00  ***  0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 1.0000 
+## 
+## 
+## 0.00  ***  1.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 
+## 0.10  ***  0.0000 0.6400 0.3236 0.0364 0.0000 0.0000 0.0000 0.0000 
+## 0.20  ***  0.0000 0.2700 0.4946 0.2284 0.0069 0.0000 0.0000 0.0000 
+## 0.30  ***  0.0000 0.0800 0.3826 0.4818 0.0556 0.0000 0.0000 0.0000 
+## 0.40  ***  0.0000 0.0100 0.1627 0.6398 0.1875 0.0000 0.0000 0.0000 
+## 0.50  ***  0.0000 0.0000 0.0101 0.5455 0.4444 0.0000 0.0000 0.0000 
+## 0.60  ***  0.0000 0.0000 0.0000 0.2411 0.6748 0.0824 0.0018 0.0000 
+## 0.70  ***  0.0000 0.0000 0.0000 0.0714 0.5571 0.3238 0.0476 0.0000 
+## 0.80  ***  0.0000 0.0000 0.0000 0.0089 0.2752 0.4954 0.2205 0.0000 
+## 0.90  ***  0.0000 0.0000 0.0000 0.0000 0.0444 0.3506 0.6049 0.0000 
+## 1.00  ***  0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 1.0000 
+## 
+## 
+## 0.00  ***  1.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 
+## 0.10  ***  0.0000 0.5120 0.3928 0.0912 0.0040 0.0000 0.0000 0.0000 0.0000 
+## 0.20  ***  0.0000 0.1620 0.4228 0.3575 0.0569 0.0008 0.0000 0.0000 0.0000 
+## 0.30  ***  0.0000 0.0320 0.2219 0.5299 0.2038 0.0123 0.0000 0.0000 0.0000 
+## 0.40  ***  0.0000 0.0020 0.0524 0.4738 0.4093 0.0625 0.0000 0.0000 0.0000 
+## 0.50  ***  0.0000 0.0000 0.0009 0.2516 0.5499 0.1975 0.0000 0.0000 0.0000 
+## 0.60  ***  0.0000 0.0000 0.0000 0.0804 0.4606 0.4408 0.0180 0.0002 0.0000 
+## 0.70  ***  0.0000 0.0000 0.0000 0.0159 0.2413 0.5657 0.1613 0.0159 0.0000 
+## 0.80  ***  0.0000 0.0000 0.0000 0.0010 0.0691 0.4122 0.3952 0.1225 0.0000 
+## 0.90  ***  0.0000 0.0000 0.0000 0.0000 0.0049 0.1096 0.4149 0.4705 0.0000 
+## 1.00  ***  0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 1.0000
+\end{verbatim}
+
+\begin{longtable}[]{@{}ccccc@{}}
+\toprule\noalign{}
+degree & order & ninner & nknots & span \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+0 & 1 & 4 & 6 & 5 \\
+1 & 2 & 4 & 8 & 6 \\
+2 & 3 & 4 & 10 & 7 \\
+3 & 4 & 4 & 12 & 8 \\
+4 & 5 & 4 & 14 & 9 \\
+\end{longtable}
+
+\[
+\sum_i B_{i,k}(x)=1
+\]
+
+M-splines
+
+\[
+M_{i,k}(x)=\frac{k+1}{t_{i+k+1}-t_i}B_{i,k}(X)
+\]
+then
+\[
+\int M_{i,k}(x)dx=1
+\]
+
+I-splines
+\[
+I_{i,k+1}(z)=\int_{-\infty}^zM_{i,k}(x)dx
+\]
+
+When is a B-spline increasing ?
+\[
+\mathcal{D}B_{i,k}(x)=
+\]
+Thus if
+\[
+\mathcal{D}\sum_{i=1}^{d+m}\alpha_iB_{i,k}(x)=
+\]
+It is sufficient that \(\alpha_i\leq\alpha_{i+1}\)
+
+\section{Background}\label{background}
+
+\subsection{Splines}\label{splines}
+
+\subsection{Cyclic Coordinate Descent}\label{cyclic-coordinate-descent}
+
+In the non-linear least squares (NNLS) problem the data are an \(n\times p\) matrix
+\(X\), a vector \(y\) with \(n\) elements, and a positive semi-definite diagonal matrix
+\(W\). We want to minimize
+\[
+\sigma(\beta):=\frac12(X\beta-y)'W(X\beta-y)
+\]
+over \(\beta\geq 0\). In data analysis and statistics the problem is often solved by
+\emph{active set methods}, implemented in R for example by NNLS (Mullen and van Stokkum (2023)) and FNNLS (Bro and De Jong (1997)). Active set methods are finitely convergent dual methods. While iterating the intermediate solutions are not feasible (i.e.~non-negative). In fact
+in dual methods we reach feasibility and optimality at the same time. Also the number of iterations, although theoretically finite, can be very large.
+
+In each smacof iteration we need an NNLS solution. Especially in the early iterations the solution does not have to be very precise. Also the solution from the previous
+NNLS problem will generally provide a very good starting value for the next iteration
+(each NNLS problem has a ``hot start''). And finally, we would like all internediate solutions to be feasible. These considerations have lead us to using
+\emph{cyclic coordinate descent} (CCD).
+
+Suppose the current best feasible solution in CCD iteration \(k\) is \(\beta^{(k)}\).
+The next CCD iteration changes each of the \(p\) coordinates of \(\beta^{(k)}\) in turn, maintaining feasibility, while keeping the other \(p-1\) coordinates fixed at their current values. Thus within a CCD iteration \(k\) we create intermediate solutions \(\beta^{(k,1)},\cdots,\beta^{(k,p)}\), where each of the intermediate solutions \(\beta^{(k,r)}\) differs from the previous one \(\beta^{(k,r-1)}\) in a single coordinate.
+For consistency we define \(\beta^{(k,0)}:=\beta^{(k)}\). After the iteration is finished
+we set \(\beta^{(k+1)}=\beta^{(k,p)}\).
+
+Note that in smacof each iteration modifies the coordinates in the order \(1,\cdots,p\), which explains why the method is called ``cyclic''. There are variations of CCD in which the order within an iteration is random or greedy (choose the coordinate which gives the largest improvement) or zig-zag \(1,\cdots,p,p-1,\cdots,1\). We have not tried out these alternatives in smacf, but we may in the future.
+
+The effect of changing a single coordinate on the loss function is
+\[
+\sigma(\beta+\epsilon e_j)=\sigma(\beta)+\epsilon\ g_j(\beta)+\frac12\epsilon^2s_{jj},
+\]
+where \(e_j\) is the unit vector corresponding with the coordinate we are changing,
+\(g(\beta):=\mathcal{D}\sigma(\beta)=X'Wr(\beta)\) is the gradient at \(\beta\), and \(r(\beta):=X\beta-y\) is the residual. Also \(S:=X'WX\). Note that if \(s_{jj}=0\)
+then also \(g_j(\beta)=0\) and thus \(\sigma(\beta+\epsilon e_j)=\sigma(\beta)\).
+In each CCD cycle we simply skip updating coordinate \(j\).
+
+If \(s_{jj}>0\) then \(\sigma(\beta+\epsilon e_j)\) is a strictly convex quadratic
+in \(\epsilon\), which we must minimize under the constraint \(\beta_j+\epsilon\geq 0\)
+or \(\epsilon\geq-\beta_j\). Define \(\hat\epsilon\) to be the solution of this constrained minimization problem.
+
+The quadratic \ldots{} has its minimum at
+\[
+\tilde\epsilon=-\frac{g_j(\beta)}{s_{jj}}
+\]
+If \(\beta+\tilde\epsilon\) is feasible then it is the update we are looking for. Thus \(\hat\epsilon=\tilde\epsilon\). If \(\beta+\tilde\epsilon<0\) then the contrained minimum is attained at the boundary, i.e.~\(\hat\epsilon=-\beta_j\) and the updated \(\beta_j\) is zero. Thus, in summary, \(\hat\epsilon=\max(\tilde\epsilon,-\beta_j)\).
+
+One of the nice things about CCD is that
+\[
+r(\hat\beta)=r(\beta)+\hat\epsilon x_j
+\]
+\[
+g(\hat\beta)=g(\beta)+\hat\epsilon s_j
+\]
+
+It follows that \(\hat\epsilon=0\) if and only if either \(\beta_j=0\) and \(g_j(\beta)\geq 0\) or if \(g_j(beta)=0\) and \(beta_j>0\).
+
+If \(g_j(\beta)<0\) then \(\tilde\epsilon>0\), and thus \(\hat\epsilon>0\) and \(\sigma(\hat\beta)<\sigma(\beta)\). Thus we must have \(g_j(\beta)\geq 0\).
+
+If \(\beta_j>0\) and \(g_j(\beta)\not=0\) then there is an \(\epsilon\) such that
+\(\sigma(\beta+\epsilon e_j)<\sigma(\beta)\). Thus if \(\beta_j>0\) we must have
+\(g_j(\beta)=0\).
+
+In summary at the minimum of \(\sigma\) over \(\beta\geq 0\)
+we must have \(\beta_j\geq 0\), \(g_j(\beta)\geq 0\), and
+\(\beta_jg_j(\beta)=0\) for all \(j\) (\emph{complementary slackness}).
+
+\[
+\sigma(\beta+\epsilon e_j)=\sigma(\beta)+\epsilon\ g_j(\beta)+\frac12\epsilon^2s_{jj},
+\]
+where \(S:=X'WX\).
+
+Now suppose we minimize \(\sigma\) over \(\beta\geq 0\).
+
+Our best solution so far is
+\(\beta^{(k)}\geq 0\). Minimize \(\sigma(\beta^{(k)}+\epsilon e_1)\) over \(\epsilon\)
+on the condition that \(\beta^{(k)}_1+\epsilon\geq 0\) or \(\epsilon\leq-\beta^{(k)}_1\).
+If \(s_{11}=0\) then also \(g_1(\beta)=0\) and we set \(\beta^{(k+1,1)}=\beta^{(k,1)}\).
+If \(s_{11}>0\) we compute
+\[
+\tilde\epsilon=-g_1(\beta)/s_{11}
+\]
+If
+\[
+\beta^{(k)}_1+\tilde\epsilon\geq 0
+\]
+then
+\[
+\beta^{(k+1,1)}=\beta^{(k)}_1+\tilde\epsilon
+\]
+If
+\[
+\beta^{(k)}_1+\tilde\epsilon<0
+\]
+we set
+\[
+\beta^{(k+1,1)}=0.
+\]
+
+\subsection{Majorization}\label{majorization}
+
+Majorization, more recently better known as MM (Lange), minimize
+
+Minimize \(\sigma\) over \(x\in S\). Suppose there is a function
+\(\eta\) on \(S\otimes S\) such that
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \(\sigma(x)\leq\eta(x,y)\) for all \(x,y\in S\).
+\item
+  \(\sigma(x)=\eta(x,x)\) for all \(x\in S\).
+\end{enumerate}
+
+The function \(\eta\) is called a \emph{majorization scheme} for \(\sigma\) on \(S\). A
+majorization scheme is \emph{strict} if \(\sigma(x)\leq\eta(x,y)\) for all \(x,y\in S\)
+withj \(x\not=y\).
+
+Define
+
+\[
+x^{(k+1)}=\mathop{\text{argmin}}_{x\in S}\eta(x,x^{(k)})
+\]
+assuming that \(\eta(x,y)\) attains its minimum over \(x\in S\) for each \(y\). Then
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \(\sigma(x^{(k+1)})\leq\eta(x^{(k+1)},x^{(k)})\) by \ldots.
+\item
+  \(\eta(x^{(k+1)},x^{(k)})\leq\eta(x^{(k)},x^{(k)})\) by \ldots{}
+\item
+  \(\eta(x^{(k)},x^{(k)})=\sigma(x^{(k)})\) by \ldots{}
+\end{enumerate}
+
+\begin{enumerate}
+\def\labelenumi{\alph{enumi}.}
+\tightlist
+\item
+  If the minimum in \ldots{} is attained for a unique \(x\) then
+  \(\eta(x^{(k+1)},x^{(k)})<\eta(x^{(k)},x^{(k)})\)
+\item
+  If the majorization is strict then
+  \(\sigma(x^{(k+1)})<\eta(x^{(k+1)},x^{(k)})\)
+\end{enumerate}
+
+\subsection{Example}\label{example}
+
+We give a small example in which we minimize \(\sigma\) with \(\sigma(x)=\sqrt{x}-\log{x}\)
+over \(x>0\). Solving \(\mathcal{D}\sigma(x)=0\) gives \(x=4\) as the solution we
+are looking for.
+
+To arrive at this solution using majorization we start with
+\[
+\sqrt{x}\leq\sqrt{y}+\frac12\frac{x-y}{\sqrt{y}},
+\]
+which is true because a differentiable concave function such as the square root is majorized by its tangent everywhere.
+Inequality \ldots{} implies
+\[
+\sigma(x)\leq\eta(x,y)=\sqrt{y}+\frac12\frac{x-y}{\sqrt{y}}-\log{x}.
+\]
+Now \(\mathcal{D}_1\eta(x,y)=0\) if and only if \(x=2\sqrt{y}\) and thus the majorization algorithm is
+\[
+x^{(k+1)}=2\sqrt{x^{(k)}}
+\]
+The sequence \(x^{(k)}\) converges monotonically to the fixed point \(x=2\sqrt{x}\), i.e.~to \(x=4\). If \(x^{(0)}<4\) the sequence is increasing, if \(x^{(0)}<4\) it is decreasing. Also, by l'Hôpital,
+\[
+\lim_{x\rightarrow 4}\frac{2\sqrt{x}-4}{x-4}=\frac12
+\]
+and thus convergence to the minimizer is linear with asymptotic convergence rate \(\frac12\). By another application of l'Hôpital
+\[
+\lim_{x\rightarrow 4}\frac{\sigma(2\sqrt{x)})-\sigma(4)}{\sigma(x)-\sigma(4)}=\frac14,
+\]
+and convergence to the minimum is linear with asymptotic convergence rate \(\frac14\).
+Linear convergence to the minimizer is typical for majorization algorithms, as is
+the twice-as-fast linear convergence to the minimum value.
+
+In table \ldots{} we show convergence starting at \(x=1.5\).
+
+\begin{verbatim}
+## itel   1 2.5000000000 0.2055741244 
+## itel   2 1.5505102572 0.0554992066 
+## itel   3 0.8698308399 0.0144357214 
+## itel   4 0.4615431837 0.0036822877 
+## itel   5 0.2378427379 0.0009299530 
+## itel   6 0.1207437506 0.0002336744 
+## itel   7 0.0608344795 0.0000585677 
+## itel   8 0.0305337787 0.0000146606 
+## itel   9 0.0152961358 0.0000036675 
+## itel  10 0.0076553935 0.0000009172 
+## itel  11 0.0038295299 0.0000002293 
+## itel  12 0.0019152235 0.0000000573 
+## itel  13 0.0009577264 0.0000000143 
+## itel  14 0.0004788919 0.0000000036 
+## itel  15 0.0002394531 0.0000000009
+\end{verbatim}
+
+\begin{center}\includegraphics{smacofManual_files/figure-latex/majplot-1} \end{center}
+
+\section*{References}\label{references}
+\addcontentsline{toc}{section}{References}
+
+\phantomsection\label{refs}
+\begin{CSLReferences}{1}{0}
+\bibitem[\citeproctext]{ref-bauschke_bui_wang_18}
+Bauschke, H. H., M. N. Bui, and X. Wang. 2018. {``{Projecting onto the Intersection of a Cone and a Sphere}.''} \emph{SIAM Journal on Optimization} 28: 2158--88.
+
+\bibitem[\citeproctext]{ref-bro_dejong_97}
+Bro, R., and S. De Jong. 1997. {``A Fast Non-Negatively-Constrained Least Squares Algorithm.''} \emph{Journal of Chemometrics} 11: 393--401.
+
+\bibitem[\citeproctext]{ref-deleeuw_U_75a}
+De Leeuw, J. 1975. {``{A Normalized Cone Regression Approach to Alternating Least Squares Algorithms}.''} Department of Data Theory FSW/RUL.
+
+\bibitem[\citeproctext]{ref-deleeuw_C_77}
+---------. 1977. {``Applications of Convex Analysis to Multidimensional Scaling.''} In \emph{Recent Developments in Statistics}, edited by J. R. Barra, F. Brodeau, G. Romier, and B. Van Cutsem, 133--45. Amsterdam, The Netherlands: North Holland Publishing Company.
+
+\bibitem[\citeproctext]{ref-deleeuw_E_17q}
+---------. 2017a. {``{Pseudo Confidence Regions for MDS}.''} 2017.
+
+\bibitem[\citeproctext]{ref-deleeuw_E_17e}
+---------. 2017b. {``{Shepard Non-metric Multidimensional Scaling}.''} 2017.
+
+\bibitem[\citeproctext]{ref-deleeuw_E_19d}
+---------. 2019. {``Normalized Cone Regression.''} 2019. \url{https://jansweb.netlify.app/publication/deleeuw-e-19-d/deleeuw-e-19-d.pdf}.
+
+\bibitem[\citeproctext]{ref-deleeuw_mair_A_09c}
+De Leeuw, J., and P. Mair. 2009. {``{Multidimensional Scaling Using Majorization: SMACOF in R}.''} \emph{Journal of Statistical Software} 31 (3): 1--30. \url{https://www.jstatsoft.org/article/view/v031i03}.
+
+\bibitem[\citeproctext]{ref-guttman_68}
+Guttman, L. 1968. {``{A General Nonmetric Technique for Fitting the Smallest Coordinate Space for a Configuration of Points}.''} \emph{Psychometrika} 33: 469--506.
+
+\bibitem[\citeproctext]{ref-kruskal_64a}
+Kruskal, J. B. 1964a. {``{Multidimensional Scaling by Optimizing Goodness of Fit to a Nonmetric Hypothesis}.''} \emph{Psychometrika} 29: 1--27.
+
+\bibitem[\citeproctext]{ref-kruskal_64b}
+---------. 1964b. {``{Nonmetric Multidimensional Scaling: a Numerical Method}.''} \emph{Psychometrika} 29: 115--29.
+
+\bibitem[\citeproctext]{ref-kruskal_carroll_69}
+Kruskal, J. B., and J. D. Carroll. 1969. {``{Geometrical Models and Badness of Fit Functions}.''} In \emph{Multivariate Analysis, Volume II}, edited by P. R. Krishnaiah, 639--71. North Holland Publishing Company.
+
+\bibitem[\citeproctext]{ref-mair_groenen_deleeuw_A_22}
+Mair, P., P. J. F. Groenen, and J. De Leeuw. 2022. {``{More on Multidimensional Scaling in R: smacof Version 2}.''} \emph{Journal of Statistical Software} 102 (10): 1--47. \url{https://www.jstatsoft.org/article/view/v102i10}.
+
+\bibitem[\citeproctext]{ref-mullen_vanstokkum_23}
+Mullen, K. M., and I. H. M. van Stokkum. 2023. \emph{{nnls: The Lawson-Hanson algorithm for non-negative least squares (NNLS)}}. \url{\%7Bhttps://CRAN.R-project.org/package=nnls\%7D}.
+
+\bibitem[\citeproctext]{ref-shepard_62a}
+Shepard, R. N. 1962a. {``{The Analysis of Proximities: Multidimensional Scaling with an Unknown Distance Function. I}.''} \emph{Psychometrika} 27: 125--40.
+
+\bibitem[\citeproctext]{ref-shepard_62b}
+---------. 1962b. {``{The Analysis of Proximities: Multidimensional Scaling with an Unknown Distance Function. II}.''} \emph{Psychometrika} 27: 219--46.
+
+\end{CSLReferences}
+
+\end{document}
