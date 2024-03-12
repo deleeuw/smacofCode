@@ -1,4 +1,5 @@
-library(splines2)
+suppressPackageStartupMessages(library(splines2, quietly = TRUE))
+suppressPackageStartupMessages(library(car, quietly = TRUE))
 
 source("smacofReadData.R")
 source("smacofConvert.R")
@@ -39,11 +40,7 @@ smacofRR <- function(name) {
        Boundary.knots = c(0, 1),
        intercept = TRUE)
   if (ordinal) {
-    basis <-
-      t(apply(basis, 1, function(x)
-        rev(cumsum(rev(
-          x
-        )))))
+    basis <- smacofCumulateBasis(basis)
   }
   if (haveweights) {
     bsums = colSums(wvec * (basis ^ 2))
@@ -132,6 +129,9 @@ smacofRR <- function(name) {
     itel <- itel + 1
   }
   xnew <- hg$xnew
+  if (ordinal) {
+    basis <- smacofDifferenceBasis(basis)
+  }
   h <- list(
     nobj = nobj,
     ndim = ndim,
@@ -148,6 +148,8 @@ smacofRR <- function(name) {
     degree = degree,
     innerKnots = innerKnots,
     anchor = anchor,
+    origin = origin,
+    basis = basis,
     coef = coef
   )
   return(h)
