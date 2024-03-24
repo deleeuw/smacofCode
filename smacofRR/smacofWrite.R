@@ -1,7 +1,5 @@
 smacofWriteConfiguration <-
-  function(h,
-           labels = 0,
-           echo = 1) {
+  function(h, labels = 0) {
     x <- matrix(h$xnew, h$nobj, h$ndim, byrow = TRUE)
     if (labels == 1) {
       lbl <- smacofReadLabels(h$name)

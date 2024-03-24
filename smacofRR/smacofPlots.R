@@ -1,6 +1,7 @@
 smacofShepardPlot <-
   function(h,
            knotlines = TRUE,
+           fitlines = FALSE,
            colline = "RED",
            colpoint = "BLUE",
            resolution = 100,
@@ -13,6 +14,7 @@ smacofShepardPlot <-
     odelta <- order(h$delta)
     x <- h$delta[odelta]
     y <- h$evec[odelta]
+    z <- h$dvec[odelta]
     plot(
       x,
       y,
@@ -23,13 +25,18 @@ smacofShepardPlot <-
       pch = pch
     )
     points(x,
-           h$dvec[odelta],
+           z,
            col = colpoint,
            cex = cex,
            pch = pch)
     if (knotlines) {
       for (i in 1:length(dknots)) {
         abline(v = dknots[i])
+      }
+    }
+    if (fitlines) {
+      for (i in 1:length(x)) {
+        lines(x = c(x[i], x[i]), y = c(y[i], z[i]))
       }
     }
     if (length(h$innerKnots) == 0) {
