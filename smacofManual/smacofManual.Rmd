@@ -713,7 +713,7 @@ The first three iterations are shown in the figure below. The vertical
 lines indicate the value of $x$, function is in red, and the first three
 majorizations are in blue.
 
-```{r majplot, fig.align = "center", echo = FALSE}
+```{r majplot, fig.align = "center", echo = FALSE, cache = TRUE}
 x <- 100:500/100
 y <- sqrt(x) - log(x)
 plot(x, y, type = "l", lwd = 3, col = "RED")
