@@ -1,0 +1,24 @@
+nobj  9
+ndim  3
+init  2
+width  10
+precision  6
+haveweights  0
+itmax  10000
+epsi  15
+verbose  1
+ditmax  5
+depsi  6
+dverbose  1
+kitmax  5
+kepsi  10
+kverbose  1
+degree  3
+ordinal  0
+haveknots  3
+ninner  5
+origin  0
+
+
+
+

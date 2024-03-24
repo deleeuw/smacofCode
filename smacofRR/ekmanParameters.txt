@@ -1,26 +1,23 @@
-nobj = 14
-ndim = 2
-init = 2
-width = 15
-precision = 10
-haveweights = 0
-itmax = 10000
-epsi = 10
-verbose = 1
-ditmax = 5
-depsi = 6
-dverbose = 1
-kitmax = 5
-kepsi = 6
-kverbose = 1
-degree = 1
-ordinal = 0
-haveknots = 0
-ninner = 0
-labels = 2
-checkkt = 0
-anchor = 1
-origin = 1
+nobj   14
+ndim   2
+init   2
+width   15
+precision   10
+haveweights   0
+itmax   10000
+epsi   10
+verbose   1
+ditmax   5
+depsi   6
+dverbose   1
+kitmax   5
+kepsi   6
+kverbose   1
+degree   3
+ordinal   0
+haveknots   3
+ninner   5
+origin   1
 
 
 

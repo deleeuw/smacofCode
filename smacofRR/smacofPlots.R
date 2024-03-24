@@ -9,11 +9,7 @@ smacofShepardPlot <-
            pch = 16) {
     maxDelta <- max(h$delta)
     minDelta <- min(h$delta)
-    if (h$anchor) {
-      dknots = maxDelta * h$innerKnots
-    } else {
-      dknots <- (maxDelta - minDelta) * h$innerKnots + minDelta
-    }
+    dknots <- (maxDelta - minDelta) * h$innerKnots + minDelta
     odelta <- order(h$delta)
     x <- h$delta[odelta]
     y <- h$evec[odelta]
@@ -42,11 +38,7 @@ smacofShepardPlot <-
       innerKnots <- h$innerKnots
     }
     x <- seq(0, 1, length = resolution)
-    if (h$anchor == 0) {
-      dx <- (maxDelta - minDelta) * x + minDelta
-    } else {
-      dx = maxDelta * x
-    }
+    dx <- (maxDelta - minDelta) * x + minDelta
     basis <- bSpline(
       x,
       knots = innerKnots,

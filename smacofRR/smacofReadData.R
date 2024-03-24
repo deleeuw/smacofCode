@@ -1,13 +1,12 @@
 smacofReadParameters <- function(name, envir) {
   fname <- paste(name, "Parameters.txt", sep = "")
-  params <- read.table(fname, sep = "=", row.names = 1)
+  params <- read.table(fname, row.names = 1)
   npar <- nrow(params)
   rnms <- row.names(params)
   for (i in 1:npar) {
     x <- gsub(" ", "", rnms[i])
     assign(x, as.integer(params[x, 1]), envir = envir)
   }
-  
 }
 
 smacofReadInitialConfiguration <- function(name) {

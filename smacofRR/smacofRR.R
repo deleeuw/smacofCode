@@ -11,7 +11,7 @@ source("smacofWrite.R")
 source("smacofDerivatives.R")
 
 smacofRR <- function(name) {
-  itel <- 1
+  name <- deparse(substitute(name))
   smacofReadParameters(name, environment())
   eps <- 10 ^ -epsi
   if (haveknots == 0) {
@@ -20,11 +20,7 @@ smacofRR <- function(name) {
   delta <- smacofReadDissimilarities(name)
   minDelta <- min(delta)
   maxDelta <- max(delta)
-  if (anchor) {
-    evec <- delta / maxDelta
-  } else {
-    evec <- (delta - minDelta) / (maxDelta - minDelta)
-  }
+  evec <- (delta - minDelta) / (maxDelta - minDelta)
   if (haveweights) {
     wvec <- smacofReadWeights(name)
     vinv <- smacofMakeVinv(wvec)
@@ -71,6 +67,7 @@ smacofRR <- function(name) {
   coef <- coef * lbd
   sold <- ifelse(haveweights, sum(wvec * (evec - dvec) ^ 2) / 2,
                  sum((evec - dvec) ^ 2) / 2)
+  itel <- 1
   repeat {
     hg <-
       smacofGuttmanLoop(
@@ -88,7 +85,6 @@ smacofRR <- function(name) {
         evec,
         dvec
       )
-    sold <- hg$snew
     xold <- hg$xnew
     dvec <- hg$dvec
     ht <-
@@ -100,7 +96,7 @@ smacofRR <- function(name) {
         dverbose,
         origin,
         ordinal,
-        sold,
+        hg$snew,
         wvec,
         basis,
         bsums,
@@ -147,7 +143,6 @@ smacofRR <- function(name) {
     ordinal = ordinal,
     degree = degree,
     innerKnots = innerKnots,
-    anchor = anchor,
     origin = origin,
     basis = basis,
     coef = coef

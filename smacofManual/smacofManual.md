@@ -4,19 +4,19 @@ title: |
     | A Manual
 author: 
 - Jan de Leeuw - University of California Los Angeles
-date: '`r paste("Started February 21 2024, Version of",format(Sys.Date(),"%B %d, %Y"))`'
+date: 'Started February 21 2024, Version of March 14, 2024'
 output:
+  bookdown::html_document2:
+    keep_md: yes
+    css: preamble.css
+    toc: true
+    toc_depth: 4
+    number_sections: yes
   bookdown::pdf_document2:
     latex_engine: lualatex
     includes:
       in_header: preamble.tex
     keep_tex: yes
-    toc: true
-    toc_depth: 4
-    number_sections: yes
-  bookdown::html_document2:
-    keep_md: yes
-    css: preamble.css
     toc: true
     toc_depth: 4
     number_sections: yes
@@ -30,58 +30,9 @@ editor_options:
     wrap: 72
 ---
 
-```{r loadpackages, echo = FALSE}
-suppressPackageStartupMessages(library(splines, quietly = TRUE))
-suppressPackageStartupMessages(library(splines2, quietly = TRUE))
-suppressPackageStartupMessages(library(knitr, quietly = TRUE))
-suppressPackageStartupMessages(library(tinytex, quietly = TRUE))
-```
 
-```{r load code, echo = FALSE}
-makeBspline <-
-  function(x,
-           degree,
-           knots = c(.2, .5, .9),
-           Boundary.knots = c(0, 1),
-           ordinal = FALSE) {
-    b <-
-      bSpline(
-        x,
-        knots = knots,
-        degree = degree,
-        Boundary.knots = Boundary.knots,
-        intercept = TRUE
-      )
-    m <- ncol(b)
-    n <- length(knots)
-    if (ordinal) {
-      b <- smacofCumulateBasis(b)
-      jmin = 2
-    } else {
-      jmin = 1
-    }
-    plot(x,
-         b[, jmin],
-         type = "l",
-         lwd = 2,
-         col = "RED")
-    for (j in (jmin + 1):m) {
-      lines(x, b[, j], lwd = 2, col = "RED")
-    }
-    if (n > 0) {
-      for (k in 1:n) {
-        abline(v = knots[k])
-      }
-    }
-  }
 
-smacofCumulateBasis <- function(basis) {
-  return(t(apply(basis, 1, function(x)
-    rev(cumsum(
-      rev(x)
-    )))))
-}
-```
+
 
 **Note:** This is a working paper which will be expanded/updated
 frequently. All suggestions for improvement are welcome. All Rmd, tex,
@@ -412,19 +363,18 @@ In the same way
 \end{equation}
 with
 \begin{equation}
-B(X):=\sum   w_{ij}r_{ij}(X)A_{ij},
+B(X):=\sum   w_{ij}r_{ij}(X)\frac{\delta_{ij}}{d_{ij}(X)}A_{ij},
 (\#eq:bdef)
 \end{equation}
 with 
 \begin{equation}
-r_{ij}(X):=\begin{cases}\frac{\delta_{ij}}{d_{ij}(X)}&\text{ if }d_{ij}(X)>0,\\
-0&\text{ if }d_{ij}(X)=0.
+r_{ij}(X):=\begin{cases}\frac{\delta_{ij}}{d_{ij}(X)}&\text{ if }d_{ij}(X)>0,(\#eq:rposdef)\\
+0&\text{ if }d_{ij}(X)=0.(\#eq:rzerodef)
 \end{cases}
 \end{equation}
 Note that $B$ is a function from the set of $n\times p$ configurations into the set of symmetric doubly-dentered matrices of order $n$. 
 All matrices of the form $\sum x_{ij}A_{ij}$, where summation is over all pairs $(i,j)$ with $j<i$, are symmetric and doubly-centered. They have $-x_{ij}$ as off-diagonal elements
 while the diagonal elements $(i,i)$ are $\sum_{j=1}^nx_{ij}$.
-
 Because $B(X)$ and $V$ are
 non-negative linear combinations of the $A_{ij}$ they are both positive semi-definite.
 Because $W$ is assumed to be irreducible the matrix $V$ has rank $n-1$, with only 
@@ -707,43 +657,29 @@ In the table below we show convergence of \@ref(eq:examplealg) starting at $x=1.
 column show how far $x^{(k)}$ deviates from the minimizer (i.e. from  4), the second shows how far$\sigma(x^{(k)})$ deviates from the minimum (i.e. from $2-\log 4$). We clearly see
 the convergence rates $\frac12$ and $\frac14$ in action.
 
-```{r majiter, echo = FALSE}
-x <- 1.5
-f <- sqrt(x) - log(x)
-f0 <- 2 - log(4)
-for (i in  1:15) {
-  cat("itel ", formatC(i, digits = 0, width = 2, format = "d"),
-      formatC(4 - x, digits = 10, format = "f"),
-      formatC(f - f0, digits = 10, format = "f"),
-      "\n")
-  x <- 2 * sqrt(x)
-  f <- sqrt(x) - log(x)
-}
-```  
+
+```
+## itel   1 2.5000000000 0.2055741244 
+## itel   2 1.5505102572 0.0554992066 
+## itel   3 0.8698308399 0.0144357214 
+## itel   4 0.4615431837 0.0036822877 
+## itel   5 0.2378427379 0.0009299530 
+## itel   6 0.1207437506 0.0002336744 
+## itel   7 0.0608344795 0.0000585677 
+## itel   8 0.0305337787 0.0000146606 
+## itel   9 0.0152961358 0.0000036675 
+## itel  10 0.0076553935 0.0000009172 
+## itel  11 0.0038295299 0.0000002293 
+## itel  12 0.0019152235 0.0000000573 
+## itel  13 0.0009577264 0.0000000143 
+## itel  14 0.0004788919 0.0000000036 
+## itel  15 0.0002394531 0.0000000009
+```
 
 
 The first three iterations are shown in the figure below. The vertical lines indicate
 the value of $x$, function is in red, and the first three majorizations are in blue.
-```{r majplot, fig.align = "center", echo = FALSE}
-x <- 100:500/100
-y <- sqrt(x) - log(x)
-plot(x, y, type = "l", lwd = 3, col = "RED")
-g <- function(x, y) {
-return(sqrt(y)+ (x - y) / (2 * sqrt(y)) - log(x))
-}
-x1 <- 1.5
-abline(v = x1)
-z1 <- g(x, x1)
-lines(x, z1, col = "BLUE")
-x2 <- 2 * sqrt(x1)
-abline(v = x2)
-z2 <- g(x, x2)
-lines(x, z2, col = "BLUE")
-x3 <- 2 * sqrt(x2)
-abline(v = x3)
-z3 <- g(x, x3)
-lines(x, z3, col = "BLUE")
-```
+<img src="smacofManual_files/figure-html/majplot-1.png" style="display: block; margin: auto;" />
 
 ### Majorizing Stress
 ## Second Phase: Update Transformation
@@ -752,24 +688,11 @@ lines(x, z3, col = "BLUE")
 
 #### B-splines
 
-```{r bsplines, echo = FALSE}
-par(mfrow = c(1, 2))
-x <- seq(0, 1, length = 1000)
-makeBspline(x, 1)
-makeBspline(x, 3)
-```
+![](smacofManual_files/figure-html/bsplines-1.png)<!-- -->
 
-```{r bernstein, echo = FALSE}
-par(mfrow = c(1, 2))
-makeBspline(x, 1, knots = NULL)
-makeBspline(x, 3, knots = NULL)
-```
+![](smacofManual_files/figure-html/bernstein-1.png)<!-- -->
 
-```{r bsplinesord, echo = FALSE}
-par(mfrow = c(1, 2))
-makeBspline(x, 1, ordinal = TRUE)
-makeBspline(x, 3, ordinal = TRUE)
-```
+![](smacofManual_files/figure-html/bsplinesord-1.png)<!-- -->
 
 ninner $m$,
 degree $k$,
@@ -781,10 +704,18 @@ B-splines
 
 $B_{i,k}(x)$ is zero outside $[t_i,t_{i+k+1}]$
 
-```{r bsplin}
+
+```r
 inner = c(.1, .5, .55, .9)
 x = 0:10/10
 print(x)
+```
+
+```
+##  [1] 0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0
+```
+
+```r
 for (degree in 0:4) {
   ord <- degree + 1
   knots <- c(rep(0, ord), inner, rep(1, ord))
@@ -796,10 +727,80 @@ for (degree in 0:4) {
   cat("\n\n")
 }
 ```
-```{r kable, echo = FALSE}
-x <- matrix(c(0:4, 1:5, rep(4,5), c(6, 8, 10, 12, 14), 5:9), 5, 5)
-kable(x, format = "pipe", digits = 0, col.names = c("degree", "order", "ninner", "nknots", "span"), align = 'c')
+
 ```
+## 0.00  ***  1.0000 0.0000 0.0000 0.0000 0.0000 
+## 0.10  ***  0.0000 1.0000 0.0000 0.0000 0.0000 
+## 0.20  ***  0.0000 1.0000 0.0000 0.0000 0.0000 
+## 0.30  ***  0.0000 1.0000 0.0000 0.0000 0.0000 
+## 0.40  ***  0.0000 1.0000 0.0000 0.0000 0.0000 
+## 0.50  ***  0.0000 0.0000 1.0000 0.0000 0.0000 
+## 0.60  ***  0.0000 0.0000 0.0000 1.0000 0.0000 
+## 0.70  ***  0.0000 0.0000 0.0000 1.0000 0.0000 
+## 0.80  ***  0.0000 0.0000 0.0000 1.0000 0.0000 
+## 0.90  ***  0.0000 0.0000 0.0000 0.0000 1.0000 
+## 1.00  ***  0.0000 0.0000 0.0000 0.0000 1.0000 
+## 
+## 
+## 0.00  ***  1.0000 0.0000 0.0000 0.0000 0.0000 0.0000 
+## 0.10  ***  0.0000 1.0000 0.0000 0.0000 0.0000 0.0000 
+## 0.20  ***  0.0000 0.7500 0.2500 0.0000 0.0000 0.0000 
+## 0.30  ***  0.0000 0.5000 0.5000 0.0000 0.0000 0.0000 
+## 0.40  ***  0.0000 0.2500 0.7500 0.0000 0.0000 0.0000 
+## 0.50  ***  0.0000 0.0000 1.0000 0.0000 0.0000 0.0000 
+## 0.60  ***  0.0000 0.0000 0.0000 0.8571 0.1429 0.0000 
+## 0.70  ***  0.0000 0.0000 0.0000 0.5714 0.4286 0.0000 
+## 0.80  ***  0.0000 0.0000 0.0000 0.2857 0.7143 0.0000 
+## 0.90  ***  0.0000 0.0000 0.0000 0.0000 1.0000 0.0000 
+## 1.00  ***  0.0000 0.0000 0.0000 0.0000 0.0000 1.0000 
+## 
+## 
+## 0.00  ***  1.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 
+## 0.10  ***  0.0000 0.8000 0.2000 0.0000 0.0000 0.0000 0.0000 
+## 0.20  ***  0.0000 0.4500 0.4944 0.0556 0.0000 0.0000 0.0000 
+## 0.30  ***  0.0000 0.2000 0.5778 0.2222 0.0000 0.0000 0.0000 
+## 0.40  ***  0.0000 0.0500 0.4500 0.5000 0.0000 0.0000 0.0000 
+## 0.50  ***  0.0000 0.0000 0.1111 0.8889 0.0000 0.0000 0.0000 
+## 0.60  ***  0.0000 0.0000 0.0000 0.6429 0.3413 0.0159 0.0000 
+## 0.70  ***  0.0000 0.0000 0.0000 0.2857 0.5714 0.1429 0.0000 
+## 0.80  ***  0.0000 0.0000 0.0000 0.0714 0.5317 0.3968 0.0000 
+## 0.90  ***  0.0000 0.0000 0.0000 0.0000 0.2222 0.7778 0.0000 
+## 1.00  ***  0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 1.0000 
+## 
+## 
+## 0.00  ***  1.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 
+## 0.10  ***  0.0000 0.6400 0.3236 0.0364 0.0000 0.0000 0.0000 0.0000 
+## 0.20  ***  0.0000 0.2700 0.4946 0.2284 0.0069 0.0000 0.0000 0.0000 
+## 0.30  ***  0.0000 0.0800 0.3826 0.4818 0.0556 0.0000 0.0000 0.0000 
+## 0.40  ***  0.0000 0.0100 0.1627 0.6398 0.1875 0.0000 0.0000 0.0000 
+## 0.50  ***  0.0000 0.0000 0.0101 0.5455 0.4444 0.0000 0.0000 0.0000 
+## 0.60  ***  0.0000 0.0000 0.0000 0.2411 0.6748 0.0824 0.0018 0.0000 
+## 0.70  ***  0.0000 0.0000 0.0000 0.0714 0.5571 0.3238 0.0476 0.0000 
+## 0.80  ***  0.0000 0.0000 0.0000 0.0089 0.2752 0.4954 0.2205 0.0000 
+## 0.90  ***  0.0000 0.0000 0.0000 0.0000 0.0444 0.3506 0.6049 0.0000 
+## 1.00  ***  0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 1.0000 
+## 
+## 
+## 0.00  ***  1.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 
+## 0.10  ***  0.0000 0.5120 0.3928 0.0912 0.0040 0.0000 0.0000 0.0000 0.0000 
+## 0.20  ***  0.0000 0.1620 0.4228 0.3575 0.0569 0.0008 0.0000 0.0000 0.0000 
+## 0.30  ***  0.0000 0.0320 0.2219 0.5299 0.2038 0.0123 0.0000 0.0000 0.0000 
+## 0.40  ***  0.0000 0.0020 0.0524 0.4738 0.4093 0.0625 0.0000 0.0000 0.0000 
+## 0.50  ***  0.0000 0.0000 0.0009 0.2516 0.5499 0.1975 0.0000 0.0000 0.0000 
+## 0.60  ***  0.0000 0.0000 0.0000 0.0804 0.4606 0.4408 0.0180 0.0002 0.0000 
+## 0.70  ***  0.0000 0.0000 0.0000 0.0159 0.2413 0.5657 0.1613 0.0159 0.0000 
+## 0.80  ***  0.0000 0.0000 0.0000 0.0010 0.0691 0.4122 0.3952 0.1225 0.0000 
+## 0.90  ***  0.0000 0.0000 0.0000 0.0000 0.0049 0.1096 0.4149 0.4705 0.0000 
+## 1.00  ***  0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 1.0000
+```
+
+| degree | order | ninner | nknots | span |
+|:------:|:-----:|:------:|:------:|:----:|
+|   0    |   1   |   4    |   6    |  5   |
+|   1    |   2   |   4    |   8    |  6   |
+|   2    |   3   |   4    |   10   |  7   |
+|   3    |   4   |   4    |   12   |  8   |
+|   4    |   5   |   4    |   14   |  9   |
 
 $$
 \sum_i B_{i,k}(x)=1
@@ -942,104 +943,7 @@ $$
 
 # Smacof Program
 
-### Front-end
-
-The front-end for both smacofRR and smacofRC is written in R. The analysis is
-started in the user's working directory by the command smacofRR(foo) or smacofRC(foo),
-where foo is a user-chosen name, a character string. 
-
-Two text files need to be present in the working directory. The first is fooParameters.txt,
-where of course you substitute the user-chosen name for foo. The second file is
-fooDelta.txt, which has the dissimilarities below the diagonal in row-major order.
-
-The parameter file has key-value format. Here is an example.
-```{r parfile, eval = FALSE}
-nobj   9
-ndim   3
-init   2
-width   10
-precision   6
-haveweights   0
-itmax  1000
-epsi  10
-verbose  1
-ditmax  5
-depsi  6
-dverbose  0
-kitmax  5
-kepsi  6
-kverbose  0
-degree  3
-haveknots  3
-ninner  5
-ordinal  1
-origin  1
-``` 
-The parameter file is read first, using the R function read.table(). There is one 
-key-value pair at the start of each line. The order of the lines does not matter. There can be additional comments or other text on each line after the value field, as long as the text is space-separated from the value field. Additional key-value lines with non-existing
-parameters can be added at will.
-
-Values of the parameters are put the local environment using
-R function assign(), which means they are available to R throughout the smacof run. Of course if we choose smacofRC the front-end needs to pass them to C using C(), but they will
-be available again for the back-end.
-
-The Delta file, and any subsequent optional input files, are read with the R function scan(). Values are separated by spaces. They can be on a single line, or laid out as a
-lower-triangular matrix, or whatever. The function scan() only stops reading if it reaches the end-of-file.
-
-We'll now discuss the parameters one by one. Note that all parameters are integers. The first two are obvious: *nobj* is the number of objects and *ndim* the number of dimensions.
-These two parameters have no default or recommended values, because they deyermined by the data. All other parameters in our example parameter file are set to 
-reasonable values in our example parameter file. But the whole idea is to experiment
-with various combinations of parameter values, so "reasonable" is weaker than
-"recommended" and "recommended" is weaker than "default".
-
-The *init* parameter can have values 1, 2, or 3.
-If *init* equals 1 the program reads an initial configuration from the file fooXinit.txt in the
-working directory. The file has *nobj* * *ndim* numbers, the initial
-configuration, in row-major format. If *init* = 2 then the classical Torgerson initial estimate will be computed. If *init* = 3 a random initial estimate will be used.
-
-*width* and *precision* are parameters for the output of the values of stress during
-iterations. 
-
-*haveweights* is either zero or one. If zero there are no weights, which is equivalent to all weights equal to one. If one then we will read a file fooWeights.txt, which has the
-lower-diagonal $\frac12 n(n-1)$ weights in row-major order.
-
-As explained in previous sections there are three iterative running in smacof. There
-are two inner iterations: one for the configuration for fixed disparities, and one
-for the disparities for fixed configuration. The two inner iteration loops are nested
-in one outer iteration loop. Each of the iterations has three parameters: one for the
-maximum number of iterations, one for the stopping criterion, and one for the 
-verbosity of the iteration output. For the outer loop the parameters are
-*itmax*, *ieps*, and *verbose*. For the inner configuration loop they are
-*kitmax*, *keps*, and *kverbose*. And the inner transformation loop they are
-*ditmax*, *deps*, and *dverbose*. If the verbose parameter is one, then 
-each iteration prints out the stress before and the stress after update.
-If verbose is zero, nothing is printed. The stopping parameters check if
-the change in stress in an iteration is less than epsilon, where
-epsilon is 10^-ieps, 10^-keps, or 10^-deps.
-
-The final five parameters are used to define the nature of the
-spline space for the transformations. *degree* is the degree of the
-piecewise polynomials. The *haveknots* parameter can be 0, 1, 2, or
-3. If it is zero, there are no inner knots and we use the Bernstein
-polynomial basis. If *haveknots* is one, the inner knots are 
-read in from fooKnots.txt in the usual way. If *haveknots* is two
-the knots are equally spaced between zero and one, and if it is
-three the knots are equally spaced on the precentile scale (so that
-the number of data points between knots is approximately the 
-same). The *ninner* parameter determines the number of knots in the case that 
-*haveknots* is either two or three. If *haveknots* is zero, then *ninner*
-should be zero, if *haveknots* is one it should be equal to the
-number of knots in fooKnots.txt.
-
-The two final spline parameters are *ordinal* and *origin*. If *ordinal*
-is one the fitted spline will be monotone, if *origin* is one it is constrained to go
-through the origin.
-
-The computations in the frontend are straightforward. We first transform the
-dissimilarities linearly so that the smallest becomes zero and the largest
-becomes one. This is not strictly necessary but it makes the spline computations
-slightly easier. 
-
+### Front End
 
 Initial Estimates for $X$
 Spline Basis

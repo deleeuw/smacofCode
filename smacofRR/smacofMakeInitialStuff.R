@@ -13,6 +13,7 @@ smacofMakeInitialConfiguration <-
   }
 
 smacofMakeInnerKnots <- function(haveknots, ninner, dhat, name) {
+  print(haveknots)
   if (haveknots == 0) {
     innerKnots <- NULL
   }
