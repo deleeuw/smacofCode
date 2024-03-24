@@ -742,20 +742,20 @@ lines(x, z3, col = "BLUE")
 
 #### B-splines
 
-```{r bsplines, echo = FALSE}
+```{r bsplines, echo = FALSE, cache = TRUE}
 par(mfrow = c(1, 2))
 x <- seq(0, 1, length = 1000)
 makeBspline(x, 1)
 makeBspline(x, 3)
 ```
 
-```{r bernstein, echo = FALSE}
+```{r bernstein, echo = FALSE, cache = TRUE}
 par(mfrow = c(1, 2))
 makeBspline(x, 1, knots = NULL)
 makeBspline(x, 3, knots = NULL)
 ```
 
-```{r bsplinesord, echo = FALSE}
+```{r bsplinesord, echo = FALSE, cache = TRUE}
 par(mfrow = c(1, 2))
 makeBspline(x, 1, ordinal = TRUE)
 makeBspline(x, 3, ordinal = TRUE)
