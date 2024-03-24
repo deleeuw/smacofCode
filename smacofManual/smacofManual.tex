@@ -1222,13 +1222,72 @@ Initial Estimates for \(X\) Spline Basis
 
 ALS First Phase Second Phase
 
-\subsubsection{Back End}\label{back-end}
+\subsubsection{Back-end}\label{back-end}
 
-The backend consists of a number of R functions that take the list
-returned by smacofRR or smacofRC as an argument.
+The back-end consists of a number of R functions that have the list
+returned by smacofRR or smacofRC as an argument. They can be used to
+make plots, compute derivatives, convert matrices to an easily
+printable format, do sensitivity analysis, and so on. The philosophy
+is that in the backend the main computing is finished and we
+just create different representations of the results.
 
-Hessian Checks Plots (Shepard, Configuration, Perturbation)\\
-Perturbation regions Parametric Bootstrap Jacknife
+\paragraph{Plotting}\label{plotting}
+
+There are two main plot functions in the backend: smacofShepardPlot()
+and smacofConfigurationPlot(). A smacofShepardPlot has the
+dissimilarities (un-normalized) on the horizontal axes and
+it has the distances and the disparities on the vertical axis.
+It draws the spline, and shows where the fitted disparities are
+on the spline. It also plots the (delta, dist) pairs as points,
+to show how far they deviate from the spline. Optionally
+smacofShepardPlot() can draw vertical lines at the inner knots
+(argument knotlines = TRUE), and optionally it can connect
+the (delta, dhat) points on the spline to the (delta, dist)
+points with lines (argument fitlines = TRUE).
+
+It must be emphasized that smacofShepardPlot() draws the spline
+over the whole interval, which is either (deltamin, 1)
+if origin = FALSE and (0, 1) if origin = TRUE. It does
+this by recomputing the spline at a large number of
+uniformly spaced points in the interval, where the
+number of points is given by the smacofShepardPlot()
+parameter resolution. Thus we do not use only the
+data points (delta,dhat) and then let the R plot function
+interpolate linearly. That can be misleading. It is
+especially misleading if degree is zero (step function)
+or if there are consecutive inner knots with no data values
+between the knots. Degree zero is handled by the special
+purpose step function plotting routine smacofPlotStepFunction(),
+which makes sure the spline is drawn as a horizontal segment
+from one knot to the next knot. In addition smacofShepardPlot()
+can set some base R plot parameters such as col, cex, lwd, and pch
+(see the R documentation).
+
+The smacofConfigurationPlot() function is much simpler than
+smacofShepardPlot(). It sets pch, col, and cex. It uses
+the smacofRR/RC labels parameter to decide how to label
+the points in the configuration. If labels = 1 it reads
+a character vector of labels from fooLabels.txt, where
+foo is of course the name of the run. If labels = 2
+the points are numbered, if labels = 3 plotting uses
+the pch symbol for all points. If the dimension \(p\)
+is larger than two, smacofConfigurationPlot() uses
+the parameters dim1 and dim2 to select the dimensions
+to plot.
+
+\paragraph{Writing}\label{writing}
+
+\paragraph{Checking}\label{checking}
+
+\paragraph{Derivatives}\label{derivatives-1}
+
+\paragraph{Sensitivity}\label{sensitivity}
+
+Perturbation regions
+
+Parametric Bootstrap
+
+Jacknife
 
 \section{Examples}\label{examples}
 

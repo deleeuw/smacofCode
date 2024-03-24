@@ -1049,13 +1049,72 @@ Initial Estimates for $X$ Spline Basis
 
 ALS First Phase Second Phase
 
-### Back End
+### Back-end
 
-The backend consists of a number of R functions that take the list
-returned by smacofRR or smacofRC as an argument.
+The back-end consists of a number of R functions that have the list
+returned by smacofRR or smacofRC as an argument. They can be used to 
+make plots, compute derivatives, convert matrices to an easily
+printable format, do sensitivity analysis, and so on. The philosophy
+is that in the backend the main computing is finished and we
+just create different representations of the results.
 
-Hessian Checks Plots (Shepard, Configuration, Perturbation)\
-Perturbation regions Parametric Bootstrap Jacknife
+#### Plotting
+
+There are two main plot functions in the backend: smacofShepardPlot()
+and smacofConfigurationPlot(). A smacofShepardPlot has the
+dissimilarities (un-normalized) on the horizontal axes and
+it has the distances and the disparities on the vertical axis.
+It draws the spline, and shows where the fitted disparities are
+on the spline. It also plots the (delta, dist) pairs as points,
+to show how far they deviate from the spline. Optionally 
+smacofShepardPlot() can draw vertical lines at the inner knots
+(argument knotlines = TRUE), and optionally it can connect 
+the (delta, dhat) points on the spline to the (delta, dist)
+points with lines (argument fitlines = TRUE). 
+
+It must be emphasized that smacofShepardPlot() draws the spline
+over the whole interval, which is either (deltamin, 1)
+if origin = FALSE and (0, 1) if origin = TRUE. It does
+this by recomputing the spline at a large number of
+uniformly spaced points in the interval, where the
+number of points is given by the smacofShepardPlot()
+parameter resolution. Thus we do not use only the
+data points (delta,dhat) and then let the R plot function 
+interpolate linearly. That can be misleading. It is
+especially misleading if degree is zero (step function)
+or if there are consecutive inner knots with no data values
+between the knots. Degree zero is handled by the special 
+purpose step function plotting routine smacofPlotStepFunction(),
+which makes sure the spline is drawn as a horizontal segment
+from one knot to the next knot. In addition smacofShepardPlot()
+can set some base R plot parameters such as col, cex, lwd, and pch
+(see the R documentation).
+
+The smacofConfigurationPlot() function is much simpler than
+smacofShepardPlot(). It sets pch, col, and cex. It uses
+the smacofRR/RC labels parameter to decide how to label
+the points in the configuration. If labels = 1 it reads
+a character vector of labels from fooLabels.txt, where
+foo is of course the name of the run. If labels = 2
+the points are numbered, if labels = 3 plotting uses
+the pch symbol for all points. If the dimension $p$
+is larger than two, smacofConfigurationPlot() uses
+the parameters dim1 and dim2 to select the dimensions
+to plot.
+
+#### Writing
+
+#### Checking
+
+#### Derivatives
+
+#### Sensitivity
+
+Perturbation regions 
+
+Parametric Bootstrap 
+
+Jacknife
 
 # Examples
 
@@ -1066,11 +1125,11 @@ circle in the plane. The dissimilarities in dcityDelta.txt are the city
 block distances between these nine points. We did five analyses of these data, with parameters and results in table \@ref(tab:dcitykable). In all analyses the transformation is required to be monotone, and the eps and itmax parameters are the same for all.
 
 
-```{r dcityresults, echo = FALSE}
+```{r dcityresults, echo = FALSE, cache = TRUE}
 source("results/hdcityResults.R")
 ```
 
-```{r dcitykable, echo = FALSE}
+```{r dcitykable, echo = FALSE, cache = TRUE}
 x <- matrix(c(
 0, 1, 0, 1, hdcity010$snew, hdcity010$itel,
 0, 1, 0, 0, hdcity010o$snew, hdcity010o$itel,
@@ -1098,17 +1157,17 @@ also show the alternative with knotsline = FALSE and fitlines = TRUE.
 Note that in the upper regions there are some pieces of the splines
 where there are no data points (some empty steps).
 
-```{r hdcitylinear, fig.align = "center", fig.cap = "dcity example, linear analysis", echo = FALSE}
+```{r hdcitylinear, fig.align = "center", fig.cap = "dcity example, linear analysis", echo = FALSE, cache = TRUE}
 par(mfrow = c(1,2))
 smacofShepardPlot(hdcity010)
 smacofShepardPlot(hdcity010o)
 ```
-```{r hdcitycubic, fig.align = "center", fig.cap = "dcity example, cubic analysis", echo = FALSE}
+```{r hdcitycubic, fig.align = "center", fig.cap = "dcity example, cubic analysis", echo = FALSE, cache = TRUE}
 par(mfrow = c(1,2))
 smacofShepardPlot(hdcity030)
 smacofShepardPlot(hdcity533)
 ```
-```{r hdcityordinal, fig.align = "center", fig.cap = "dcity example, nonmetric analysis", echo = FALSE}
+```{r hdcityordinal, fig.align = "center", fig.cap = "dcity example, nonmetric analysis", echo = FALSE, cache = TRUE}
 par(mfrow = c(1,2))
 smacofShepardPlot(hdcity2503)
 smacofShepardPlot(hdcity2503, fitlines = TRUE, knotlines = FALSE)
@@ -1125,11 +1184,11 @@ Four analyses this time, all monotone through the origin. In  this case, because
 the minimum dissimilarity is zero anyway, the origin parameter has almost no
 effect.
 
-```{r ekmanresults, echo = FALSE}
+```{r ekmanresults, echo = FALSE, cache = TRUE}
 source("results/hekmanResults.R")
 ```
 
-```{r ekmankable, echo = FALSE}
+```{r ekmankable, echo = FALSE, cache = TRUE}
 x <- matrix(c(
 0, 3, 0, 1, hekman030$snew, hekman030$itel,
 5, 3, 3, 1, hekman533$snew, hekman533$itel,
@@ -1139,12 +1198,12 @@ knitr::kable(x, format = "pipe", digits = 10, col.names = c("ninner", "degree", 
 caption = "Analyses of the Ekman example")
 ```
 
-```{r hekmancubic, fig.align = "center", fig.cap = "Ekman example, cubic analysis", echo = FALSE}
+```{r hekmancubic, fig.align = "center", fig.cap = "Ekman example, cubic analysis", echo = FALSE, cache = TRUE}
 par(mfrow = c(1,2))
 smacofShepardPlot(hekman030)
 smacofShepardPlot(hekman533)
 ```
-```{r hekmanordinal, fig.align = "center", fig.cap = "Ekman example, nonmetric analysis", echo = FALSE}
+```{r hekmanordinal, fig.align = "center", fig.cap = "Ekman example, nonmetric analysis", echo = FALSE, cache = TRUE}
 par(mfrow = c(1,2))
 smacofShepardPlot(hekman5003, fitlines = TRUE, knotlines = FALSE)
 smacofShepardPlot(hekman5003o, fitlines = FALSE, knotlines = TRUE)
