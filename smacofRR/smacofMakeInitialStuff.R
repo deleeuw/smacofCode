@@ -12,8 +12,9 @@ smacofMakeInitialConfiguration <-
     return(smacofCenter(xold, nobj, ndim))
   }
 
-smacofMakeInnerKnots <- function(haveknots, ninner, dhat, name) {
-  print(haveknots)
+smacofMakeInnerKnots <- function(haveknots, ninner, delta, name) {
+  maxDelta <- max(delta)
+  minDelta <- min(delta) 
   if (haveknots == 0) {
     innerKnots <- NULL
   }
@@ -21,13 +22,18 @@ smacofMakeInnerKnots <- function(haveknots, ninner, dhat, name) {
     innerKnots <- smacofReadInnerKnots(name)
   }
   if (haveknots == 2) {
-    # equally spaced on dhat scale
-    innerKnots <- (1:ninner) / (ninner + 1)
+    # equally spaced on delta scale
+    interval <- (1:ninner) / (ninner + 1)
+    if (anchor) {
+      innerknots <- interval * maxDelta
+    } else {
+      innerknots <- interval * (maxDelta - minDelta)
+    }
   }
   if (haveknots == 3) {
     # equally spaced on percentile scale
     prob <- (1:ninner) / (ninner + 1)
-    innerKnots <- unname(quantile(unique(dhat), prob))
+    innerKnots <- unname(quantile(unique(delta), prob))
   }
   return(innerKnots)
 }

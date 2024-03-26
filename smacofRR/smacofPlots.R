@@ -1,5 +1,8 @@
 smacofShepardPlot <-
   function(h,
+           intercept = h$intercept,
+           anchor = h$anchor,
+           innerKnots = h$innerKnots,
            knotlines = TRUE,
            fitlines = FALSE,
            colline = "RED",
@@ -10,28 +13,31 @@ smacofShepardPlot <-
            pch = 16) {
     maxDelta <- max(h$delta)
     minDelta <- min(h$delta)
-    dknots <- (maxDelta - minDelta) * h$innerKnots + minDelta
     odelta <- order(h$delta)
     x <- h$delta[odelta]
     y <- h$evec[odelta]
     z <- h$dvec[odelta]
     plot(
+      rbind(cbind(x, z), cbind(x, y)),
+      type = "n"
+    )
+    plot(
       x,
-      y,
-      col = colline,
+      z,
+      col = colpoint,
       xlab = "delta",
       ylab = "dhat and dist",
       cex = cex,
       pch = pch
     )
     points(x,
-           z,
-           col = colpoint,
+           y,
+           col = colline,
            cex = cex,
            pch = pch)
     if (knotlines) {
-      for (i in 1:length(dknots)) {
-        abline(v = dknots[i])
+      for (i in 1:length(innerKnots)) {
+        abline(v = innerKnots[i])
       }
     }
     if (fitlines) {
@@ -39,19 +45,23 @@ smacofShepardPlot <-
         lines(x = c(x[i], x[i]), y = c(y[i], z[i]))
       }
     }
-    if (length(h$innerKnots) == 0) {
-      innerKnots <- NULL
+    if (anchor) {
+      x <- seq(0, maxDelta, length = resolution)
+      boundaryKnots <- c(0, maxDelta)
     } else {
-      innerKnots <- h$innerKnots
+      x <- seq(minDelta, maxDelta, length = resolution)
+      boundaryKnots <- c(minDelta, maxDelta)
     }
-    x <- seq(0, 1, length = resolution)
-    dx <- (maxDelta - minDelta) * x + minDelta
+    print(intercept)
+    print(anchor)
+    print(boundaryKnots)
+    print(innerKnots)
     basis <- bSpline(
       x,
       knots = innerKnots,
       degree = h$degree,
-      Boundary.knots = c(0, 1),
-      intercept = TRUE
+      Boundary.knots = boundaryKnots,
+      intercept = intercept
     )
     if (h$ordinal) {
       basis <-
@@ -60,12 +70,12 @@ smacofShepardPlot <-
             x
           )))))
     }
-    dy <- drop(basis %*% h$coef)
+    y <- drop(basis %*% h$coef)
     if (h$degree == 0) {
-      smacofPlotStepFunction(dx, dy, dknots, maxDelta, colline, lwd)
+      smacofPlotStepFunction(x, y, innerKnots, maxDelta, colline, lwd)
     } else {
-      lines(dx,
-            dy,
+      lines(x,
+            y,
             type = "l",
             lwd = lwd,
             col = colline)
@@ -128,6 +138,6 @@ smacofConfigurationPlot <-
         ylab = paste("dimension", dim2),
         type = "n"
       )
-      text(xnew[, 1:2], lbl, col = col, cex = cex)
+      text(xnew[, c(dim1, dim2)], lbl, col = col, cex = cex)
     }
   }

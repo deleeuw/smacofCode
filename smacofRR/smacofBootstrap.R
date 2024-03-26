@@ -1,3 +1,4 @@
 smacofParametrixBootstrap <- function(h) {
   
 }
+

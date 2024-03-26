@@ -1,3 +1,4 @@
+
 smacofGuttmanLoop <-
   function(nobj,
            ndim,
@@ -59,7 +60,6 @@ smacofTransformLoop <-
            ditmax,
            depsi,
            dverbose,
-           origin,
            ordinal,
            sold,
            wvec,
@@ -72,12 +72,7 @@ smacofTransformLoop <-
     dcol <- ncol(basis)
     ktel <- 1
     repeat {
-      if (origin) {
-        jstart = 2
-      } else {
-        jstart = 1
-      }
-      for (j in jstart:dcol) {
+      for (j in 1:dcol) {
         fac <- basis[, j] * (evec - dvec)
         if (haveweights) {
           fac <- wvec * fac

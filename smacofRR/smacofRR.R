@@ -1,3 +1,5 @@
+
+
 suppressPackageStartupMessages(library(splines2, quietly = TRUE))
 suppressPackageStartupMessages(library(car, quietly = TRUE))
 
@@ -20,7 +22,12 @@ smacofRR <- function(name) {
   delta <- smacofReadDissimilarities(name)
   minDelta <- min(delta)
   maxDelta <- max(delta)
-  evec <- (delta - minDelta) / (maxDelta - minDelta)
+  if (anchor) {
+    Boundary.knots <- c(0, maxDelta)
+  }
+  else {
+    Boundary.knots <- c(minDelta, maxDelta)
+  }
   if (haveweights) {
     wvec <- smacofReadWeights(name)
     vinv <- smacofMakeVinv(wvec)
@@ -28,13 +35,16 @@ smacofRR <- function(name) {
     wvec <- numeric(0)
     vinv <- numeric(0)
   }
-  innerKnots <- smacofMakeInnerKnots(haveknots, ninner, evec, name)
+  innerKnots <- smacofMakeInnerKnots(haveknots, ninner, delta, name)
   basis <-
-    bSpline(evec,
-       knots = innerKnots,
-       degree = degree,
-       Boundary.knots = c(0, 1),
-       intercept = TRUE)
+    bSpline(
+      delta,
+      knots = innerKnots,
+      degree = degree,
+      Boundary.knots = Boundary.knots,
+      intercept = intercept
+    )
+  print(basis)
   if (ordinal) {
     basis <- smacofCumulateBasis(basis)
   }
@@ -44,9 +54,10 @@ smacofRR <- function(name) {
     bsums = colSums(basis ^ 2)
   }
   basis <- basis[, which(bsums > 0)]
+  print(basis)  
   bsums <- bsums[which(bsums > 0)]
   xold <-
-    smacofMakeInitialConfiguration(name, init, evec, nobj, ndim)
+    smacofMakeInitialConfiguration(name, init, delta, nobj, ndim)
   dvec <- smacofDistances(nobj, ndim, xold)
   etas <- ifelse(haveweights, sum(wvec * (dvec ^ 2)),
                  sum(dvec ^ 2))
@@ -94,7 +105,6 @@ smacofRR <- function(name) {
         ditmax,
         depsi,
         dverbose,
-        origin,
         ordinal,
         hg$snew,
         wvec,
@@ -143,7 +153,8 @@ smacofRR <- function(name) {
     ordinal = ordinal,
     degree = degree,
     innerKnots = innerKnots,
-    origin = origin,
+    intercept = intercept,
+    anchor = anchor,
     basis = basis,
     coef = coef
   )
