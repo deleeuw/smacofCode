@@ -1,7 +1,9 @@
 smacofShepardPlot <-
   function(h,
+           main = "ShepardPlot",
            intercept = h$intercept,
            anchor = h$anchor,
+           transform = TRUE,
            innerKnots = h$innerKnots,
            knotlines = TRUE,
            fitlines = FALSE,
@@ -17,16 +19,24 @@ smacofShepardPlot <-
     x <- h$delta[odelta]
     y <- h$evec[odelta]
     z <- h$dvec[odelta]
+    if (anchor) {
+      boundaryKnots <- c(0, maxDelta)
+    } else {
+      boundaryKnots <- c(minDelta, maxDelta)
+    }
     plot(
       rbind(cbind(x, z), cbind(x, y)),
+      xlim = c(0, maxDelta),
+      ylim = c(0, max(h$dvec)),
+      xlab = "delta",
+      ylab = "dhat and dist",
+      main = main,
       type = "n"
     )
-    plot(
+    points(
       x,
       z,
       col = colpoint,
-      xlab = "delta",
-      ylab = "dhat and dist",
       cex = cex,
       pch = pch
     )
@@ -35,7 +45,7 @@ smacofShepardPlot <-
            col = colline,
            cex = cex,
            pch = pch)
-    if (knotlines) {
+    if (transform && knotlines) {
       for (i in 1:length(innerKnots)) {
         abline(v = innerKnots[i])
       }
@@ -45,17 +55,8 @@ smacofShepardPlot <-
         lines(x = c(x[i], x[i]), y = c(y[i], z[i]))
       }
     }
-    if (anchor) {
-      x <- seq(0, maxDelta, length = resolution)
-      boundaryKnots <- c(0, maxDelta)
-    } else {
-      x <- seq(minDelta, maxDelta, length = resolution)
-      boundaryKnots <- c(minDelta, maxDelta)
-    }
-    print(intercept)
-    print(anchor)
-    print(boundaryKnots)
-    print(innerKnots)
+    if (transform) {
+    x <- seq(boundaryKnots[1], boundaryKnots[2], length = resolution)
     basis <- bSpline(
       x,
       knots = innerKnots,
@@ -79,6 +80,10 @@ smacofShepardPlot <-
             type = "l",
             lwd = lwd,
             col = colline)
+    }
+    }
+    else {
+      abline(0, 1, col = colline, lwd = lwd)
     }
   }
 

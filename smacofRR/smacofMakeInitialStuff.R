@@ -12,7 +12,7 @@ smacofMakeInitialConfiguration <-
     return(smacofCenter(xold, nobj, ndim))
   }
 
-smacofMakeInnerKnots <- function(haveknots, ninner, delta, name) {
+smacofMakeInnerKnots <- function(haveknots, ninner, anchor, delta, name) {
   maxDelta <- max(delta)
   minDelta <- min(delta) 
   if (haveknots == 0) {
@@ -25,9 +25,9 @@ smacofMakeInnerKnots <- function(haveknots, ninner, delta, name) {
     # equally spaced on delta scale
     interval <- (1:ninner) / (ninner + 1)
     if (anchor) {
-      innerknots <- interval * maxDelta
+      innerKnots <- interval * maxDelta
     } else {
-      innerknots <- interval * (maxDelta - minDelta)
+      innerKnots <- interval * (maxDelta - minDelta)
     }
   }
   if (haveknots == 3) {
@@ -43,8 +43,14 @@ smacofMakeKnots <- function(degree, innerKnots) {
 }
 
 smacofCumulateBasis <- function(basis) {
-  return(t(apply(basis, 1, function(x)
-    rev(cumsum(rev(x))))))
+  ncol <- ncol(basis)
+  if (ncol == 1) {
+    return(basis)
+  }
+  for (i in (ncol - 1):1) {
+    basis[, i] <- basis[, i] + basis[, i + 1]
+  }
+  return(basis)
 }
 
 smacofDifferenceBasis <- function(basis) {

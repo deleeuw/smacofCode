@@ -1,9 +1,11 @@
 
+
 smacofGuttmanLoop <-
   function(nobj,
            ndim,
            itel,
            haveweights,
+           wsum,
            kitmax,
            kepsi,
            kverbose,
@@ -12,18 +14,22 @@ smacofGuttmanLoop <-
            wvec,
            vinv,
            evec,
-           dvec) {
+           dvec,
+           transform) {
     keps <- 10.0 ^ -kepsi
     ktel <- 1
     repeat {
       xnew <-
         smacofGuttmanTransform(nobj, ndim, haveweights, wvec, vinv, evec, dvec, xold)
       dvec <- smacofDistances(nobj, ndim, xnew)
-      etas <- ifelse(haveweights, sum(wvec * (dvec ^ 2)),
-                     sum(dvec ^ 2))
-      etaa <- 1 / sqrt(etas)
-      xnew <- xnew * etaa
-      dvec <- dvec * etaa
+      if (transform) {
+        etas <- ifelse(haveweights, sum(wvec * (dvec ^ 2)),
+                       sum(dvec ^ 2))
+        etaa <- sqrt(wsum / etas)
+        xnew <- xnew * etaa
+        dvec <- dvec * etaa
+      }
+      print(c(transform, wsum, sum(dvec ^ 2)))
       snew <- ifelse(haveweights, sum(wvec * (evec - dvec) ^ 2) / 2,
                      sum((evec - dvec) ^ 2) / 2)
       if (kverbose) {
@@ -113,4 +119,3 @@ smacofTransformLoop <-
       snew = snew
     ))
   }
-

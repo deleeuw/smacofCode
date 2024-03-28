@@ -30,52 +30,65 @@ smacofRR <- function(name) {
   }
   if (haveweights) {
     wvec <- smacofReadWeights(name)
+    wsum <- sum(weights)
     vinv <- smacofMakeVinv(wvec)
   } else {
     wvec <- numeric(0)
     vinv <- numeric(0)
+    wsum <- nobj * (nobj - 1) / 2
   }
-  innerKnots <- smacofMakeInnerKnots(haveknots, ninner, delta, name)
-  basis <-
-    bSpline(
-      delta,
-      knots = innerKnots,
-      degree = degree,
-      Boundary.knots = Boundary.knots,
-      intercept = intercept
-    )
-  print(basis)
-  if (ordinal) {
-    basis <- smacofCumulateBasis(basis)
+  if (transform) {
+    innerKnots <-
+      smacofMakeInnerKnots(haveknots, ninner, anchor, delta, name)
+    basis <-
+      bSpline(
+        delta,
+        knots = innerKnots,
+        degree = degree,
+        Boundary.knots = Boundary.knots,
+        intercept = intercept
+      )
+    basis <- as.matrix(basis)
+    if (ordinal) {
+      basis <- smacofCumulateBasis(basis)
+    }
+    if (haveweights) {
+      bsums <- colSums(wvec * (basis ^ 2))
+    } else {
+      bsums <- colSums(basis ^ 2)
+    }
+    basis <- basis[, which(bsums > 0), drop = FALSE]
+    bsums <- bsums[which(bsums > 0)]
   }
-  if (haveweights) {
-    bsums = colSums(wvec * (basis ^ 2))
-  } else {
-    bsums = colSums(basis ^ 2)
+  else {
+    basis <- numeric(0)
+    innerKnots <- numeric(0)
   }
-  basis <- basis[, which(bsums > 0)]
-  print(basis)  
-  bsums <- bsums[which(bsums > 0)]
   xold <-
     smacofMakeInitialConfiguration(name, init, delta, nobj, ndim)
   dvec <- smacofDistances(nobj, ndim, xold)
-  etas <- ifelse(haveweights, sum(wvec * (dvec ^ 2)),
-                 sum(dvec ^ 2))
-  etaa <- sqrt(etas)
-  dvec <- dvec / etaa
-  xold <- xold / etaa
-  coef <- 0:(ncol(basis) - 1)
-  evec <- drop(basis %*% coef)
-  if (haveweights) {
-    esum <- sum(wvec * evec * dvec)
-    fsum <- sum(wvec * evec ^ 2)
+  if (transform) {
+    etas <- ifelse(haveweights, sum(wvec * (dvec ^ 2)),
+                   sum(dvec ^ 2))
+    etaa <- sqrt(wsum / etas)
+    dvec <- dvec * etaa
+    xold <- xold * etaa
+    coef <- 1:ncol(basis)
+    evec <- drop(basis %*% coef)
+    if (haveweights) {
+      esum <- sum(wvec * evec * dvec)
+      fsum <- sum(wvec * evec ^ 2)
+    } else {
+      esum <- sum(evec * dvec)
+      fsum <- sum(evec ^ 2)
+    }
+    lbd <- esum / fsum
+    evec <- evec * lbd
+    coef <- coef * lbd
   } else {
-    esum <- sum(evec * dvec)
-    fsum <- sum(evec ^ 2)
+    evec <- delta
+    coef <- numeric(0)
   }
-  lbd <- esum / fsum
-  evec <- evec * lbd
-  coef <- coef * lbd
   sold <- ifelse(haveweights, sum(wvec * (evec - dvec) ^ 2) / 2,
                  sum((evec - dvec) ^ 2) / 2)
   itel <- 1
@@ -86,6 +99,7 @@ smacofRR <- function(name) {
         ndim,
         itel,
         haveweights,
+        wsum, 
         kitmax,
         kepsi,
         kverbose,
@@ -94,27 +108,32 @@ smacofRR <- function(name) {
         wvec,
         vinv,
         evec,
-        dvec
+        dvec,
+        transform
       )
     xold <- hg$xnew
     dvec <- hg$dvec
-    ht <-
-      smacofTransformLoop(
-        itel,
-        haveweights,
-        ditmax,
-        depsi,
-        dverbose,
-        ordinal,
-        hg$snew,
-        wvec,
-        basis,
-        bsums,
-        coef,
-        evec,
-        dvec
-      )
-    snew <- ht$snew
+    if (transform) {
+      ht <-
+        smacofTransformLoop(
+          itel,
+          haveweights,
+          ditmax,
+          depsi,
+          dverbose,
+          ordinal,
+          hg$snew,
+          wvec,
+          basis,
+          bsums,
+          coef,
+          evec,
+          dvec
+        )
+      snew <- ht$snew
+    }  else {
+      snew <- hg$snew
+    }
     if (verbose) {
       cat(
         "itel ",
@@ -130,8 +149,10 @@ smacofRR <- function(name) {
       break
     }
     sold <- snew
-    coef <- ht$coef
-    evec <- ht$evec
+    if (transform) {
+      coef <- ht$coef
+      evec <- ht$evec
+    }
     itel <- itel + 1
   }
   xnew <- hg$xnew
