@@ -5,7 +5,7 @@ smacofShepardPlot <-
            anchor = h$anchor,
            transform = h$transform,
            innerKnots = h$innerKnots,
-           knotlines = 1,
+           knotlines = 0,
            fitlines = 0,
            colline = "RED",
            colpoint = "BLUE",
