@@ -29,7 +29,6 @@ smacofGuttmanLoop <-
         xnew <- xnew * etaa
         dvec <- dvec * etaa
       }
-      print(c(transform, wsum, sum(dvec ^ 2)))
       snew <- ifelse(haveweights, sum(wvec * (evec - dvec) ^ 2) / 2,
                      sum((evec - dvec) ^ 2) / 2)
       if (kverbose) {

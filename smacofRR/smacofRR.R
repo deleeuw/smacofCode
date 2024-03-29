@@ -156,7 +156,7 @@ smacofRR <- function(name) {
     itel <- itel + 1
   }
   xnew <- hg$xnew
-  if (ordinal) {
+  if (ordinal && transform) {
     basis <- smacofDifferenceBasis(basis)
   }
   h <- list(
@@ -177,7 +177,8 @@ smacofRR <- function(name) {
     intercept = intercept,
     anchor = anchor,
     basis = basis,
-    coef = coef
+    coef = coef,
+    transform = transform
   )
   return(h)
 }

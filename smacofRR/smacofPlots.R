@@ -3,10 +3,10 @@ smacofShepardPlot <-
            main = "ShepardPlot",
            intercept = h$intercept,
            anchor = h$anchor,
-           transform = TRUE,
+           transform = h$transform,
            innerKnots = h$innerKnots,
-           knotlines = TRUE,
-           fitlines = FALSE,
+           knotlines = 1,
+           fitlines = 0,
            colline = "RED",
            colpoint = "BLUE",
            resolution = 100,
@@ -33,13 +33,11 @@ smacofShepardPlot <-
       main = main,
       type = "n"
     )
-    points(
-      x,
-      z,
-      col = colpoint,
-      cex = cex,
-      pch = pch
-    )
+    points(x,
+           z,
+           col = colpoint,
+           cex = cex,
+           pch = pch)
     points(x,
            y,
            col = colline,
@@ -56,31 +54,31 @@ smacofShepardPlot <-
       }
     }
     if (transform) {
-    x <- seq(boundaryKnots[1], boundaryKnots[2], length = resolution)
-    basis <- bSpline(
-      x,
-      knots = innerKnots,
-      degree = h$degree,
-      Boundary.knots = boundaryKnots,
-      intercept = intercept
-    )
-    if (h$ordinal) {
-      basis <-
-        t(apply(basis, 1, function(x)
-          rev(cumsum(rev(
-            x
-          )))))
-    }
-    y <- drop(basis %*% h$coef)
-    if (h$degree == 0) {
-      smacofPlotStepFunction(x, y, innerKnots, maxDelta, colline, lwd)
-    } else {
-      lines(x,
-            y,
-            type = "l",
-            lwd = lwd,
-            col = colline)
-    }
+      x <- seq(boundaryKnots[1], boundaryKnots[2], length = resolution)
+      basis <- bSpline(
+        x,
+        knots = innerKnots,
+        degree = h$degree,
+        Boundary.knots = boundaryKnots,
+        intercept = intercept
+      )
+      if (h$ordinal) {
+        basis <-
+          t(apply(basis, 1, function(x)
+            rev(cumsum(rev(
+              x
+            )))))
+      }
+      y <- drop(basis %*% h$coef)
+      if (h$degree == 0) {
+        smacofPlotStepFunction(x, y, innerKnots, maxDelta, colline, lwd)
+      } else {
+        lines(x,
+              y,
+              type = "l",
+              lwd = lwd,
+              col = colline)
+      }
     }
     else {
       abline(0, 1, col = colline, lwd = lwd)
