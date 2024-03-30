@@ -111,6 +111,7 @@ smacofPlotStepFunction <-
 
 smacofConfigurationPlot <-
   function(h,
+           main = "ConfigurationPlot",
            dim1 = 1,
            dim2 = 2,
            labels = 2,
