@@ -1,5 +1,5 @@
 # the data for smacofTriads are 5-tuples (i, j, k, x, y)
-# question 1: which if i and j is more similar to k: x is i or j, y is zero
+# question 1: which of i and j is more similar to k: x is i or j, y is zero
 # question 2: which two are most similar: if (i,j) x = 1, if (i,k) x=2, if (j,k) x = 3, y is zero
 # question 3: which is the most and the least similar pair: as for question 2, but also for y
 
