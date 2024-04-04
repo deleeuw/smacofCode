@@ -19,6 +19,7 @@ smacofBS <- function(name) {
     ninner = 0
   }
   delta <- smacofReadDissimilarities(name)
+  labels <- smacofMakeLabels(nobj, havelabels, name)
   minDelta <- min(delta)
   maxDelta <- max(delta)
   if (anchor) {
@@ -170,6 +171,8 @@ smacofBS <- function(name) {
     wvec = wvec,
     delta = delta,
     haveweights = haveweights,
+    havelabels = havelabels,
+    labels = labels,
     ordinal = ordinal,
     degree = degree,
     innerKnots = innerKnots,

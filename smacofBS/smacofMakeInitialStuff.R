@@ -42,6 +42,17 @@ smacofMakeKnots <- function(degree, innerKnots) {
   return(c(rep(0, degree + 1), innerKnots, rep(1, degree + 1)))
 }
 
+smacofMakeLabels <- function(nobj, havelabels, name) {
+  if (havelabels == 1) {
+    return(smacofReadLabels(name))
+  }
+  if (havelabels == 2) {
+    return(as.character(1:nobj))
+  }
+  return(NULL)
+}
+
+
 smacofCumulateBasis <- function(basis) {
   ncol <- ncol(basis)
   if (ncol == 1) {

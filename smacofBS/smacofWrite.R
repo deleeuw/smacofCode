@@ -1,22 +1,19 @@
 smacofWriteConfiguration <-
-  function(h, labels = 0) {
+  function(h) {
     x <- matrix(h$xnew, h$nobj, h$ndim, byrow = TRUE)
-    if (labels == 1) {
-      lbl <- smacofReadLabels(h$name)
+    if (h$havelabels == 1) {
       row.names(x) <- lbl
     }
     return(x)
   }
 
 smacofWriteRMVectorAsDist <-
-  function(avec,
-           labels = 0,
+  function(avec, havelabels, labels,
            matrix = FALSE) {
     d <- as.matrix(smacofRMVectorToDist(avec))
-    if (labels == 1) {
-      lbl <- smacofReadLabels(h$name)
-      row.names(d) <- lbl
-      colnames(d) <- lbl
+    if (havelabels == 1) {
+      row.names(d) <- labels
+      colnames(d) <- labels
     }
     if (matrix) {
       return(d)
@@ -25,13 +22,28 @@ smacofWriteRMVectorAsDist <-
     }
   }
 
-smacofWriteDelta <- function(h, labels = 0, matrix = FALSE) {
-  return(smacofWriteRMVectorAsDist(h$delta, labels = labels, matrix = matrix))
+smacofWriteDelta <- function(h,
+                             matrix = FALSE) {
+  return(
+    smacofWriteRMVectorAsDist(
+      h$delta,
+      havelabels = h$havelabels,
+      labels = h$labels,
+      matrix = matrix
+    )
+  )
 }
 
 smacofWriteWeights <- function(h, labels = 0, matrix = FALSE) {
   if (h$haveweights) {
-    return(smacofWriteRMVectorAsDist(h$wvec, labels = labels, matrix = matrix))
+    return(
+      smacofWriteRMVectorAsDist(
+        h$wvec,
+        havelabels = h$havelabels,
+        labels = h$labels,
+        matrix = matrix
+      )
+    )
   }
   else {
     print("smacof analysis has no weights")
@@ -39,11 +51,29 @@ smacofWriteWeights <- function(h, labels = 0, matrix = FALSE) {
   }
 }
 
-smacofWriteDistances <- function(h, labels = 0, matrix = FALSE) {
-  return(smacofWriteRMVectorAsDist(h$dvec, labels = labels, matrix = matrix))
-}
+smacofWriteDistances <-
+  function(h,
+           matrix = FALSE) {
+    return(
+      smacofWriteRMVectorAsDist(
+        h$dvec,
+        havelabels = h$havelabels,
+        labels = h$labels,
+        matrix = matrix
+      )
+    )
+  }
 
 
-smacofWriteDisparities <- function(h, labels = 0, matrix = FALSE) {
-  smacofWriteRMVectorAsDist(h$evec, labels = labels, matrix = matrix)
-}
+smacofWriteDisparities <-
+  function(h,
+           matrix = FALSE) {
+    return(
+      smacofWriteRMVectorAsDist(
+        h$evec,
+        havelabels = h$havelabels,
+        labels = h$labels,
+        matrix = matrix
+      )
+    )
+  }

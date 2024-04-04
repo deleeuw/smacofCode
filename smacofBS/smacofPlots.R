@@ -114,22 +114,16 @@ smacofConfigurationPlot <-
            main = "ConfigurationPlot",
            dim1 = 1,
            dim2 = 2,
-           labels = 2,
            pch = 16,
            col = "RED",
            cex = 1.5) {
-    if (labels == 1) {
-      lbl <- smacofReadLabels(h$name)
-    }
-    if (labels == 2) {
-      lbl <- as.character(1:h$nobj)
-    }
     xnew <- matrix(h$xnew, h$nobj, h$ndim, byrow = TRUE)
-    if (labels == 3) {
+    if (h$havelabels == 3) {
       plot(
         xnew[, c(dim1, dim2)],
         xlab = paste("dimension", dim1),
         ylab = paste("dimension", dim2),
+        main = main,
         pch = pch,
         col = col,
         cex = cex
@@ -140,8 +134,9 @@ smacofConfigurationPlot <-
         xnew[, c(dim1, dim2)],
         xlab = paste("dimension", dim1),
         ylab = paste("dimension", dim2),
+        main = main,
         type = "n"
       )
-      text(xnew[, c(dim1, dim2)], lbl, col = col, cex = cex)
+      text(xnew[, c(dim1, dim2)], h$labels, col = col, cex = cex)
     }
   }
