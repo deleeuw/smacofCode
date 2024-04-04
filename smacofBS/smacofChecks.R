@@ -1,3 +1,4 @@
+
 smacofCheckBasis <- function(h) {
   b <- h$basis
   if (max(abs(rowSums(b) - 1)) < 1e-10) {

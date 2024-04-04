@@ -1,3 +1,4 @@
+
 smacofReadParameters <- function(name, envir = .GlobalEnv) {
   fname <- paste(name, "Parameters.txt", sep = "")
   params <- read.table(fname, row.names = 1)

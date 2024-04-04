@@ -1,5 +1,4 @@
 
-
 suppressPackageStartupMessages(library(splines2, quietly = TRUE))
 suppressPackageStartupMessages(library(car, quietly = TRUE))
 
@@ -12,7 +11,7 @@ source("smacofPlots.R")
 source("smacofWrite.R")
 source("smacofDerivatives.R")
 
-smacofRR <- function(name) {
+smacofBS <- function(name) {
   name <- deparse(substitute(name))
   smacofReadParameters(name, environment())
   eps <- 10 ^ -epsi
@@ -174,6 +173,8 @@ smacofRR <- function(name) {
     ordinal = ordinal,
     degree = degree,
     innerKnots = innerKnots,
+    ninner = ninner,
+    haveknots = haveknots,
     intercept = intercept,
     anchor = anchor,
     basis = basis,
