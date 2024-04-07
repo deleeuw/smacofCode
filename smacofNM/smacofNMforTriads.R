@@ -15,11 +15,12 @@ smacofNMforTriads <-
       i <- data[r, 1]
       j <- data[r, 2]
       k <- data[r, 3]
-      l <- data[r, 4]
       w[i, j] <- w[i, j] + 1
-      w[k, l] <- w[k, l] + 1
+      w[i, k] <- w[i, k] + 1
+      w[j, k] <- w[j, k] + 1
       w[j, i] <- w[i, j]
-      w[l, k] <- w[k, l]
+      w[k, i] <- w[i, k]
+      w[k, j] <- w[k, j]
     }
     ssqd <- sum(w * (dold ^ 2))
     dold <- dold / sqrt(ssqd)
@@ -35,10 +36,11 @@ smacofNMforTriads <-
         i <- data[r, 1]
         j <- data[r, 2]
         k <- data[r, 3]
-        l <- data[r, 4]
-        x <- data[r, 5]
+        x <- data[r, 4]
+        y <- data[r, 5]
         dij <- dold[i, j]
-        dkl <- dold[k, l]
+        dik <- dold[i, k]
+        djk <- dold[j, k]
         if (x == 1) {
           if (dij <= dkl) {
             dhatij <- dij
@@ -100,3 +102,5 @@ smacofNMforTriads <-
       itel = itel
     ))
   }
+
+
