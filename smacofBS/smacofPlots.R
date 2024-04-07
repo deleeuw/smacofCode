@@ -140,3 +140,35 @@ smacofConfigurationPlot <-
       text(xnew[, c(dim1, dim2)], h$labels, col = col, cex = cex)
     }
   }
+
+smacofDistDhatPlot <- function(h,
+                               fitlines = 1,
+                               colline = "RED",
+                               colpoint = "BLUE",
+                               main = "Dist-Dhat Plot",
+                               cex = 1,
+                               lwd = 2,
+                               pch = 16) {
+  par(pty = "s")
+  plot(
+    h$dnew,
+    h$dhat,
+    xlab = "distance",
+    ylab = "disparity",
+    main = main,
+    cex = cex,
+    pch = pch,
+    col = colpoint
+  )
+  abline(0, 1)
+  if (fitlines) {
+    m <- length(h$dnew)
+    for (i in 1:m) {
+      x <- h$dnew[i]
+      y <- h$dhat[i]
+      z <- (x + y) / 2
+      a <- matrix(c(x, z, y, z), 2, 2)
+      lines(a, col = colline, lwd = lwd)
+    }
+  }
+}
