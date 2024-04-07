@@ -1,18 +1,4 @@
 
-
-
-parties <- c("GL",
-             "PvdA",
-             "VVD",
-             "D66",
-             "CDA",
-             "SP",
-             "PvdD",
-             "CU",
-             "FVD",
-             "SGP")
-
-
 smacofMakeAllTriads <- function(names, complete = TRUE) {
   outfile <- file("./output.txt", open = "w")
   n <- length(names)
@@ -169,29 +155,45 @@ smacofMakeRandomPairs <- function(names, nrandom) {
   close(outfile)
 }
 
-smacofMakeRankOrderData <- function(delta, tieblocks = TRUE) {
-  if (any(class(delta) == "dist")) {
-    n <- attr(delta, "Size")
-    delta <- smacofDistToRMVector(delta)
-  }
-  if (is.matrix(delta)) {
-    delta <- as.dist(delta)
-    n <- attr(delta, "Size")
-    delta <- smacofDistToRMVector(delta)
-  }
-  delta <- rank(delta)
-  x <- matrix(0, 0, 3)
-  k <- 1
-  for (i in 2:n) {
-    for (j in 1:(i - 1)) {
-      x <- rbind(x, c(i, j, delta[k]))
-      k <- k + 1
+
+smacofMakeRankOrderData <-
+  function(delta,
+           weights = NULL,
+           tieblocks = TRUE) {
+    if (any(class(delta) == "dist")) {
+      n <- attr(delta, "Size")
+      delta <- smacofDistToRMVector(delta)
     }
+    if (is.matrix(delta)) {
+      delta <- as.dist(delta)
+      n <- attr(delta, "Size")
+      delta <- smacofDistToRMVector(delta)
+    }
+    if (is.null(weights)) {
+      weights <- rep(1, length(delta))
+    }
+    if (any(class(weights) == "dist")) {
+      n <- attr(weights, "Size")
+      weights <- smacofDistToRMVector(weights)
+    }
+    if (is.matrix(weights)) {
+      weights <- as.dist(weights)
+      n <- attr(weights, "Size")
+      weights <- smacofDistToRMVector(weights)
+    }
+    delta <- rank(delta)
+    x <- matrix(0, 0, 4)
+    k <- 1
+    for (i in 2:n) {
+      for (j in 1:(i - 1)) {
+        x <- rbind(x, c(i, j, delta[k], weights[k]))
+        k <- k + 1
+      }
+    }
+    r <- order(delta)
+    x <- x[r, ]
+    return(cbind(x, smacofMakeTieBlocks(x[, 3])))
   }
-  r <- order(delta)
-  x <- x[r, ]
-  return(x)
-}
 
 smacofMakeConditionalRankOrderData <-
   function(delta, nr, nc, tieblocks = TRUE) {
@@ -209,3 +211,17 @@ smacofMakeConditionalRankOrderData <-
     }
     return(x)
   }
+
+smacofMakeTieBlocks <- function(x) {
+  n <- length(x)
+  y <- rep(0, n)
+  y[1] <- 1
+  for (i in 2:n) {
+    if (x[i] == x[i - 1]) {
+      y[i] <- y[i - 1]
+    } else {
+      y[i] <- y[i - 1] + 1
+    }
+  }
+  return(y)
+}

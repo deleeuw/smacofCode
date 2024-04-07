@@ -1,4 +1,4 @@
-pava <-
+smacofPoolAdjacentViolaters <-
   function(x,
            w = rep(1, length(x)),
            block = weighted.mean) {
@@ -58,40 +58,37 @@ pava <-
     put.back(n, blocklist, blockvalues)
   }
 
-monregP <-
-  function(x,
-           y,
-           w = rep(1, length(x)),
-           block = weighted.mean) {
-    o <- order(x, y)
-    r <- order(o)
-    return(pava(y[o], w[o])[r])
+smacofPrimaryMonotoneRegression <- function(data, target) {
+  dnew <- data
+  nobs <- nrow(data)
+  nblocks <- max(data[, 5])
+  for (i in 1:nblocks) {
+    indi <- which(data[, 5] == i)
+    targ <- target[indi]
+    otrg <- order(targ)
+    target[indi] <- sort(targ)
+    dnew[indi, ] <- data[indi[otrg], ]  
   }
+  result <- smacofPoolAdjacentViolaters(target, data[, 4])
+  return(list(result = result, data = dnew))
+}
 
-monregS <-
-  function(x,
-           y,
-           w = rep(1, length(x)),
-           block = weighted.mean) {
-    wag <- tapply(w, x, sum)
-    yag <- tapply(y, x, mean)
-    xag <- tapply(x, x, mean)
-    o <- order(xag)
-    r <- order(o)
-    e <- pava(yag[o], wag[o])[r]
-    return(drop(ifelse(outer(x, xag, "=="), 1, 0) %*% e))
+smacofSecondaryMonotoneRegression <- function(data, target) {
+  nobs <- nrow(data)
+  nblocks <- max(data[, 5])
+  avew <- rep(0, nblocks)
+  avex <- rep(0, nblocks)
+  for (i in 1:nobs) {
+    k <- data[i, 5]
+    w <- data[i, 4]
+    avex[k] <- avex[k] + w * target[i] 
+    avew[k] <- avew[k] + w
   }
-
-monregT <-
-  function(x,
-           y,
-           w = rep(1, length(x)),
-           block = weighted.mean) {
-    wag <- tapply(w, x, sum)
-    yag <- tapply(y, x, mean)
-    xag <- tapply(x, x, mean)
-    o <- order(xag)
-    r <- order(o)
-    e <- pava(yag[o], wag[o])[r]
-    return(y + ifelse(outer(x, xag, "=="), 1, 0) %*% (e - yag[o]))
+  avex <- avex / avew
+  avex <- smacofPoolAdjacentViolaters(avex, avew)
+  result <- rep(0, nobs)
+  for (i in 1:nobs) {
+    result[i] <- avex[data[i, 5]]
   }
+return(result)
+}
