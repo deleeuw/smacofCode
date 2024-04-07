@@ -15,18 +15,12 @@ smacofBS <- function(name) {
   name <- deparse(substitute(name))
   smacofReadParameters(name, environment())
   eps <- 10 ^ -epsi
-  if (haveknots == 0) {
-    ninner = 0
-  }
   delta <- smacofReadDissimilarities(name)
   labels <- smacofMakeLabels(nobj, havelabels, name)
-  minDelta <- min(delta)
-  maxDelta <- max(delta)
-  if (anchor) {
-    Boundary.knots <- c(0, maxDelta)
-  }
-  else {
-    Boundary.knots <- c(minDelta, maxDelta)
+  basis <- numeric(0)
+  innerKnots <- numeric(0)
+  if (haveknots == 0) {
+    ninner = 0
   }
   if (haveweights) {
     wvec <- smacofReadWeights(name)
@@ -38,31 +32,21 @@ smacofBS <- function(name) {
     wsum <- nobj * (nobj - 1) / 2
   }
   if (transform) {
-    innerKnots <-
-      smacofMakeInnerKnots(haveknots, ninner, anchor, delta, name)
-    basis <-
-      bSpline(
-        delta,
-        knots = innerKnots,
-        degree = degree,
-        Boundary.knots = Boundary.knots,
-        intercept = intercept
-      )
-    basis <- as.matrix(basis)
-    if (ordinal) {
-      basis <- smacofCumulateBasis(basis)
-    }
-    if (haveweights) {
-      bsums <- colSums(wvec * (basis ^ 2))
-    } else {
-      bsums <- colSums(basis ^ 2)
-    }
-    basis <- basis[, which(bsums > 0), drop = FALSE]
-    bsums <- bsums[which(bsums > 0)]
-  }
-  else {
-    basis <- numeric(0)
-    innerKnots <- numeric(0)
+    h <- smacofMakeBsplineBasis(
+      delta,
+      wvec,
+      haveweights,
+      ordinal,
+      anchor,
+      intercept,
+      haveknots,
+      ninner,
+      degree,
+      name
+    )
+    basis <- h$basis
+    bsums <- h$bsums
+    innerKnots <- h$innerKnots
   }
   xold <-
     smacofMakeInitialConfiguration(name, init, delta, nobj, ndim)
@@ -99,7 +83,7 @@ smacofBS <- function(name) {
         ndim,
         itel,
         haveweights,
-        wsum, 
+        wsum,
         kitmax,
         kepsi,
         kverbose,

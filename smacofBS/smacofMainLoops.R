@@ -1,5 +1,4 @@
 
-
 smacofGuttmanLoop <-
   function(nobj,
            ndim,
