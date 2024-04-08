@@ -1,9 +1,9 @@
 library(MASS)
 
-source("smacofConvert.R")
-source("smacofMakeData.R")
+source("smacofConvertNM.R")
+source("smacofMakeDataNM.R")
 source("smacofMonotoneRegression.R")
-source("smacofPlots.R")
+source("smacofPlotsNM.R")
 
 data(ekman, package = "smacof")
 ekman <- 1 - ekman 

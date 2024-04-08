@@ -1,15 +1,16 @@
 
+
 suppressPackageStartupMessages(library(splines2, quietly = TRUE))
 suppressPackageStartupMessages(library(car, quietly = TRUE))
 
-source("smacofReadData.R")
-source("smacofConvert.R")
-source("smacofMakeInitialStuff.R")
-source("smacofMainLoops.R")
-source("smacofUtilities.R")
-source("smacofPlots.R")
-source("smacofWrite.R")
-source("smacofDerivatives.R")
+source("smacofReadDataBS.R")
+source("smacofConvertBS.R")
+source("smacofMakeInitialStuffBS.R")
+source("smacofMainLoopsBS.R")
+source("smacofUtilitiesBS.R")
+source("smacofPlotsBS.R")
+source("smacofWriteBS.R")
+source("smacofDerivativesBS.R")
 
 smacofBS <- function(name) {
   name <- deparse(substitute(name))
@@ -31,48 +32,39 @@ smacofBS <- function(name) {
     vinv <- numeric(0)
     wsum <- nobj * (nobj - 1) / 2
   }
-  if (transform) {
-    h <- smacofMakeBsplineBasis(
-      delta,
-      wvec,
-      haveweights,
-      ordinal,
-      anchor,
-      intercept,
-      haveknots,
-      ninner,
-      degree,
-      name
-    )
-    basis <- h$basis
-    bsums <- h$bsums
-    innerKnots <- h$innerKnots
-  }
+  h <- smacofMakeBsplineBasis(delta,
+                              wvec,
+                              haveweights,
+                              ordinal,
+                              anchor,
+                              intercept,
+                              haveknots,
+                              ninner,
+                              degree,
+                              name)
+  basis <- h$basis
+  bsums <- h$bsums
+  innerKnots <- h$innerKnots
   xold <-
     smacofMakeInitialConfiguration(name, init, delta, nobj, ndim)
   dvec <- smacofDistances(nobj, ndim, xold)
-  if (transform) {
-    etas <- ifelse(haveweights, sum(wvec * (dvec ^ 2)),
-                   sum(dvec ^ 2))
-    etaa <- sqrt(wsum / etas)
-    dvec <- dvec * etaa
-    xold <- xold * etaa
-    coef <- 1:ncol(basis)
-    evec <- drop(basis %*% coef)
-    if (haveweights) {
-      esum <- sum(wvec * evec * dvec)
-      fsum <- sum(wvec * evec ^ 2)
-    } else {
-      esum <- sum(evec * dvec)
-      fsum <- sum(evec ^ 2)
-    }
-    lbd <- esum / fsum
-    evec <- evec * lbd
-    coef <- coef * lbd
+  etas <- ifelse(haveweights, sum(wvec * (dvec ^ 2)),
+                 sum(dvec ^ 2))
+  etaa <- sqrt(wsum / etas)
+  dvec <- dvec * etaa
+  xold <- xold * etaa
+  coef <- 1:ncol(basis)
+  evec <- drop(basis %*% coef)
+  if (haveweights) {
+    esum <- sum(wvec * evec * dvec)
+    fsum <- sum(wvec * evec ^ 2)
   } else {
-    evec <- delta
-    coef <- numeric(0)
+    esum <- sum(evec * dvec)
+    fsum <- sum(evec ^ 2)
   }
+  lbd <- esum / fsum
+  evec <- evec * lbd
+  coef <- coef * lbd
   sold <- ifelse(haveweights, sum(wvec * (evec - dvec) ^ 2) / 2,
                  sum((evec - dvec) ^ 2) / 2)
   itel <- 1
@@ -92,32 +84,27 @@ smacofBS <- function(name) {
         wvec,
         vinv,
         evec,
-        dvec,
-        transform
-      )
+        dvec
+        )
     xold <- hg$xnew
     dvec <- hg$dvec
-    if (transform) {
-      ht <-
-        smacofTransformLoop(
-          itel,
-          haveweights,
-          ditmax,
-          depsi,
-          dverbose,
-          ordinal,
-          hg$snew,
-          wvec,
-          basis,
-          bsums,
-          coef,
-          evec,
-          dvec
-        )
-      snew <- ht$snew
-    }  else {
-      snew <- hg$snew
-    }
+    ht <-
+      smacofTransformLoop(
+        itel,
+        haveweights,
+        ditmax,
+        depsi,
+        dverbose,
+        ordinal,
+        hg$snew,
+        wvec,
+        basis,
+        bsums,
+        coef,
+        evec,
+        dvec
+      )
+    snew <- ht$snew
     if (verbose) {
       cat(
         "itel ",
@@ -133,14 +120,12 @@ smacofBS <- function(name) {
       break
     }
     sold <- snew
-    if (transform) {
-      coef <- ht$coef
-      evec <- ht$evec
-    }
+    coef <- ht$coef
+    evec <- ht$evec
     itel <- itel + 1
   }
   xnew <- hg$xnew
-  if (ordinal && transform) {
+  if (ordinal) {
     basis <- smacofDifferenceBasis(basis)
   }
   h <- list(
@@ -165,8 +150,7 @@ smacofBS <- function(name) {
     intercept = intercept,
     anchor = anchor,
     basis = basis,
-    coef = coef,
-    transform = transform
+    coef = coef
   )
   return(h)
 }

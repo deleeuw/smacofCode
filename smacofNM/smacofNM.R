@@ -2,14 +2,14 @@
 
 suppressPackageStartupMessages(library(car, quietly = TRUE))
 
-source("smacofReadData.R")
-source("smacofConvert.R")
-source("smacofMakeInitialStuff.R")
-source("smacofMainLoops.R")
-source("smacofUtilities.R")
-source("smacofPlots.R")
-source("smacofWrite.R")
-source("smacofDerivatives.R")
+source("smacofReadDataNM.R")
+source("smacofConvertNM.R")
+source("smacofMakeInitialStuffNM.R")
+source("smacofMainLoopsNM.R")
+source("smacofUtilitiesNM.R")
+source("smacofPlotsNM.R")
+source("smacofWriteNM.R")
+source("smacofDerivativesNM.R")
 
 smacofNM <- function(name) {
   name <- deparse(substitute(name))
