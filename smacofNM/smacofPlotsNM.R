@@ -151,7 +151,7 @@ smacofDistDhatPlot <- function(h,
                                pch = 16) {
   par(pty = "s")
   plot(
-    h$dnew,
+    h$dvec,
     h$dhat,
     xlab = "distance",
     ylab = "disparity",
@@ -162,9 +162,9 @@ smacofDistDhatPlot <- function(h,
   )
   abline(0, 1)
   if (fitlines) {
-    m <- length(h$dnew)
+    m <- length(h$dvec)
     for (i in 1:m) {
-      x <- h$dnew[i]
+      x <- h$dvec[i]
       y <- h$dhat[i]
       z <- (x + y) / 2
       a <- matrix(c(x, z, y, z), 2, 2)

@@ -1,0 +1,13 @@
+nobj 10
+ndim 2
+init 3
+epsi 10
+itmax 100
+verbose 1
+kepsi 10
+kitmax 5
+kverbose 1
+haveweights 0
+havelabels 2
+datatype 2
+ties 0

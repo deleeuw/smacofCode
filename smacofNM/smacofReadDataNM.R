@@ -9,16 +9,16 @@ smacofReadParameters <- function(name, envir = .GlobalEnv) {
   }
 }
 
+smacofReadNonMetricData <- function(name) {
+  fname <- paste(name, "Data.txt", sep = "")
+  data <- read.table(fname)
+  return(data)
+}
+
 smacofReadInitialConfiguration <- function(name) {
   fname <- paste(name, "Xini.txt", sep = "")
   xini <- scan(fname, quiet = TRUE)
   return(xini)  
-}
-
-smacofReadInnerKnots <- function(name) {
-  fname <- paste(name, "Knots.txt", sep = "")
-  innerknots <- scan(fname, quiet = TRUE)
-  return(innerknots)
 }
 
 smacofReadDissimilarities <- function(name) {

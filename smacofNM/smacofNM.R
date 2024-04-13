@@ -1,69 +1,64 @@
+source("smacofConvertNM.R")
+source("smacofCumulateEpsilon.R")
+source("smacofMakeDataNM.R")
+source("smacofMakeInitialStuffNM.R")
+source("smacofMonotoneRegression.R")
+source("smacofPlotsNM.R")
+source("smacofReadDataNM.R")
+source("smacofUtilitiesNM.R")
+source("smacofGuttmanLoop.R")
 
 
 smacofNM <- function(name) {
   name <- deparse(substitute(name))
   smacofReadParameters(name, environment())
   eps <- 10 ^ -epsi
-  data <- smacofReadNonmetricData(name)
+  data <- smacofReadNonMetricData(name)
   labels <- smacofMakeLabels(nobj, havelabels, name)
   if (haveweights) {
     wvec <- smacofReadWeights(name)
-    wsum <- sum(weights)
-    vinv <- smacofMakeVinv(wvec)
   } else {
-    wvec <- numeric(0)
-    vinv <- numeric(0)
-    wsum <- nobj * (nobj - 1) / 2
+    wvec <- rep(1, nobj * (nobj - 1) / 2)
   }
+  evec <-
+    smacofCumulateEpsilon(data, evec = rep(0, length(wvec)), datatype)
+  wstr <- wvec * evec
+  wsum <- sum(wstr)
+  vinv <- smacofMakeVinv(wstr)
   xold <-
-    smacofMakeInitialConfiguration(name, init, delta, nobj, ndim)
+    smacofMakeInitialConfiguration(name, init, data, datatype, nobj, ndim)
   dvec <- smacofDistances(nobj, ndim, xold)
-  etas <- ifelse(haveweights, sum(wvec * (dvec ^ 2)),
-                 sum(dvec ^ 2))
+  etas <- sum(wstr * (dvec ^ 2))
   etaa <- sqrt(wsum / etas)
   dvec <- dvec * etaa
   xold <- xold * etaa
-  # evec
-  # take data and weights and make evec
-  # also make initial (and final) w
-  if (haveweights) {
-    esum <- sum(wvec * evec * dvec)
-    fsum <- sum(wvec * evec ^ 2)
-  } else {
-    esum <- sum(evec * dvec)
-    fsum <- sum(evec ^ 2)
-  }
-  lbd <- esum / fsum
-  evec <- evec * lbd
-  sold <- ifelse(haveweights, sum(wvec * (evec - dvec) ^ 2) / 2,
-                 sum((evec - dvec) ^ 2) / 2)
+  ht <-
+    smacofMonotoneRegression(data, dvec, wstr, wvec, datatype = datatype, ties = ties)
+  data <- ht$data
+  dhat <- ht$dhat
+  sold <- ht$stress
   itel <- 1
   repeat {
     hg <-
-      smacofGuttmanLoop(
-        nobj,
-        ndim,
-        itel,
-        haveweights,
-        wsum,
-        kitmax,
-        kepsi,
-        kverbose,
-        sold,
-        xold,
-        wvec,
-        vinv,
-        evec,
-        dvec,
-      )
-    xold <- hg$xnew
+      smacofGuttmanLoop(nobj,
+                        ndim,
+                        itel,
+                        wsum,
+                        kitmax,
+                        kepsi,
+                        kverbose,
+                        xold,
+                        wstr,
+                        vinv,
+                        dhat,
+                        dvec)
     dvec <- hg$dvec
-    ht <- smacofMonotoneRegression(wvec, dvec, data, datatype, ties)
-    
-    # smid
-    # monotone regression
-    
-    snew <- hg$snew
+    xnew <- hg$xnew
+    ht <-
+      smacofMonotoneRegression(data, dvec, evec, wvec, datatype, ties)
+    dhat <- ht$dhat
+    data <- ht$data
+    snew <- ht$stress
     if (verbose) {
       cat(
         "itel ",
@@ -78,10 +73,10 @@ smacofNM <- function(name) {
     if ((itel == itmax) || ((sold - snew) < eps)) {
       break
     }
+    xold <- xnew
     sold <- snew
     itel <- itel + 1
   }
-  xnew <- hg$xnew
   h <- list(
     nobj = nobj,
     ndim = ndim,
@@ -89,11 +84,11 @@ smacofNM <- function(name) {
     snew = snew,
     itel = itel,
     xnew = xnew,
-    evec = evec,
+    dhat = dhat,
     dvec = dvec,
     wvec = wvec,
-    delta = delta,
-    haveweights = haveweights
+    labels = labels,
+    havelabels = havelabels
   )
   return(h)
 }

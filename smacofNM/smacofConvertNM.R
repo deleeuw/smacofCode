@@ -1,3 +1,10 @@
+# RM index pair in dist object to RM vector index
+
+sindex <- function(i, j) {
+  ij <- max(i, j)
+  ji <- min(i, j)
+  return(choose(ij - 1, 2) + ji)
+}
 
 # dist object of size n to RM vector of length n(n-1)/2
 
