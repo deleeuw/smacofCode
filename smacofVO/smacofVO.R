@@ -147,7 +147,7 @@ voronoiSchurComplement <- function(vmat, n, k) {
   return(vschur)
 }
 
-voronoi <- function(fname, itmax = 10, eps = 1e-10, verbose = TRUE) {
+smacofVO <- function(fname, itmax = 10, eps = 1e-10, verbose = TRUE) {
   data <- voronoiReadData(fname)
   n <- nrow(data)
   g <- voronoiMakeIndicators(data)
