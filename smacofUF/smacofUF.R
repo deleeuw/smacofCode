@@ -137,6 +137,7 @@ smacofUF <- function(name) {
     wmat <- matrix(1, nrows, ncols)
   }
   wsum <- sum(wmat)
+  # we can do better; remove big matrix
   vmat <- smacofExpandMatrix(wmat)
   vinv <- ginv(vmat)
   zold <-
@@ -148,6 +149,7 @@ smacofUF <- function(name) {
   etaa <- sqrt(wsum / etas)
   dmat <- dmat * etaa
   zold <- zold * etaa
+  
   repeat {
     FALSE
   }
