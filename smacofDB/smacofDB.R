@@ -1,7 +1,5 @@
 
-
 suppressPackageStartupMessages(library(splines2, quietly = TRUE))
-suppressPackageStartupMessages(library(car, quietly = TRUE))
 
 source("smacofReadDataBS.R")
 source("smacofConvertBS.R")
@@ -25,16 +23,11 @@ smacofBS <- function(name) {
   }
   if (haveweights) {
     wvec <- smacofReadWeights(name)
-    wsum <- sum(weights)
-    vinv <- smacofMakeVinv(wvec)
   } else {
-    wvec <- numeric(0)
-    vinv <- numeric(0)
-    wsum <- nobj * (nobj - 1) / 2
+    wvec <- rep(1, length(delta))
   }
   h <- smacofMakeBsplineBasis(delta,
                               wvec,
-                              haveweights,
                               ordinal,
                               anchor,
                               intercept,
@@ -48,33 +41,27 @@ smacofBS <- function(name) {
   xold <-
     smacofMakeInitialConfiguration(name, init, delta, nobj, ndim)
   dvec <- smacofDistances(nobj, ndim, xold)
-  etas <- ifelse(haveweights, sum(wvec * (dvec ^ 2)),
-                   sum(dvec ^ 2))
-  etaa <- sqrt(wsum / etas)
-  dvec <- dvec * etaa
-  xold <- xold * etaa
-  coef <- 1:ncol(basis)
-  evec <- drop(basis %*% coef)
-  if (haveweights) {
-    esum <- sum(wvec * evec * dvec)
-    fsum <- sum(wvec * evec ^ 2)
+  if (ordinal) {
+    coef <- rep(1, ncol(basis))
   } else {
-    esum <- sum(evec * dvec)
-    fsum <- sum(evec ^ 2)
+    coef <- 1:ncol(basis)
   }
+  evec <- drop(basis %*% coef)
+  esum <- sum(wvec * evec * dvec)
+  fsum <- sum(wvec * evec ^ 2)
   lbd <- esum / fsum
   evec <- evec * lbd
   coef <- coef * lbd
-  sold <- ifelse(haveweights, sum(wvec * (evec - dvec) ^ 2) / 2,
-                 sum((evec - dvec) ^ 2) / 2)
+  sold <- smacofComputeStress(wvec, evec, dvec, stress)
   itel <- 1
   repeat {
+    vinv <- smacofMakeVinv(wvec, dvec, sold, stress)
     hg <-
       smacofGuttmanLoop(
         nobj,
         ndim,
         itel,
-        haveweights,
+        stress,
         wsum,
         kitmax,
         kepsi,
@@ -85,13 +72,13 @@ smacofBS <- function(name) {
         vinv,
         evec,
         dvec
-        )
+      )
     xold <- hg$xnew
     dvec <- hg$dvec
     ht <-
       smacofTransformLoop(
         itel,
-        haveweights,
+        stress,
         ditmax,
         depsi,
         dverbose,

@@ -1,9 +1,10 @@
 
+
 smacofGuttmanLoop <-
   function(nobj,
            ndim,
            itel,
-           haveweights,
+           stress,
            wsum,
            kitmax,
            kepsi,
@@ -18,15 +19,10 @@ smacofGuttmanLoop <-
     ktel <- 1
     repeat {
       xnew <-
-        smacofGuttmanTransform(nobj, ndim, haveweights, wvec, vinv, evec, dvec, xold)
-        dvec <- smacofDistances(nobj, ndim, xnew)
-        etas <- ifelse(haveweights, sum(wvec * (dvec ^ 2)),
-                       sum(dvec ^ 2))
-        etaa <- sqrt(wsum / etas)
-        xnew <- xnew * etaa
-        dvec <- dvec * etaa
-      snew <- ifelse(haveweights, sum(wvec * (evec - dvec) ^ 2) / 2,
-                     sum((evec - dvec) ^ 2) / 2)
+        smacofGuttmanTransform(nobj, ndim, wvec, vinv, evec, dvec, xold)
+      dvec <- smacofDistances(nobj, ndim, xnew)
+      snew <-
+        smacofComputeStress(wvec, evec, dvec, stress)
       if (kverbose) {
         cat(
           "itel ",
@@ -57,7 +53,7 @@ smacofGuttmanLoop <-
 
 smacofTransformLoop <-
   function(itel,
-           haveweights,
+           stress,
            ditmax,
            depsi,
            dverbose,
@@ -74,10 +70,7 @@ smacofTransformLoop <-
     ktel <- 1
     repeat {
       for (j in 1:dcol) {
-        fac <- basis[, j] * (evec - dvec)
-        if (haveweights) {
-          fac <- wvec * fac
-        }
+        fac <- wvec * basis[, j] * (evec - dvec)
         s <- sum(fac)
         chng <- -s / bsums[j]
         if (ordinal) {
@@ -86,8 +79,7 @@ smacofTransformLoop <-
         coef[j] <- coef[j] + chng
         evec <- evec + chng * basis[, j]
         snew <-
-          ifelse(haveweights, sum(wvec * (evec - dvec) ^ 2) / 2,
-                 sum((evec - dvec) ^ 2) / 2)
+          smacofComputeStress(wvec, evec, dvec, stress)
       }
       if (dverbose) {
         cat(
