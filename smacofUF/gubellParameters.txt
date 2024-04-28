@@ -1,9 +1,0 @@
-rows 7
-cols 5
-rowinit 0
-colinit 0
-haverowlabels 0
-havecollabels 0
-verbose 1
-epsi 10
-itmax 100

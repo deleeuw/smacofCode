@@ -1,16 +1,16 @@
 
 suppressPackageStartupMessages(library(splines2, quietly = TRUE))
 
-source("smacofReadDataBS.R")
-source("smacofConvertBS.R")
-source("smacofMakeInitialStuffBS.R")
-source("smacofMainLoopsBS.R")
-source("smacofUtilitiesBS.R")
-source("smacofPlotsBS.R")
-source("smacofWriteBS.R")
-source("smacofDerivativesBS.R")
+source("smacofReadDataDB.R")
+source("smacofConvertDB.R")
+source("smacofMakeInitialStuffDB.R")
+source("smacofMainLoopsDB.R")
+source("smacofUtilitiesDB.R")
+source("smacofPlotsDB.R")
+source("smacofWriteDB.R")
+source("smacofDerivativesDB.R")
 
-smacofBS <- function(name) {
+smacofDB <- function(name) {
   name <- deparse(substitute(name))
   smacofReadParameters(name, environment())
   eps <- 10 ^ -epsi
