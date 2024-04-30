@@ -1,4 +1,4 @@
-smacofImproveRowScores <- function(x, y, xhat, yhat, vmat, xnorm) {
+smacofImproveRowScores <- function(x, y, xhat, yhat, vmat, xnorm, centroid) {
   nrows <- nrow(x)
   ncols <- nrow(y)
   v12 <- vmat[1:nrows, nrows + 1:ncols]
@@ -16,7 +16,7 @@ smacofImproveRowScores <- function(x, y, xhat, yhat, vmat, xnorm) {
   return(xnew)
 }
 
-smacofImproveColumnScores <- function(x, y, xhat, yhat, vmat, yrank) {
+smacofImproveColumnScores <- function(x, y, xhat, yhat, vmat, yrank, centroid) {
   nrows <- nrow(x)
   ncols <- nrow(y)
   v21 <- vmat[1:nrows, nrows + 1:ncols]
@@ -28,4 +28,8 @@ smacofImproveColumnScores <- function(x, y, xhat, yhat, vmat, yrank) {
     ynew <- hmat / v22
   }
   return(ynew)
+}
+
+smacofImproveRowAndColumnScores <- function() {
+  
 }

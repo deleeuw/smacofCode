@@ -1,0 +1,3 @@
+tack   nail1  nail2  nail3  nail4  nail5  nail6  nail7  nail8  screw1 screw2
+screw3 screw4 screw5 bolt1  bolt2  bolt3  bolt4  bolt5  bolt6  tack1  tack2 
+nailb  screwb

@@ -3,11 +3,11 @@ ncols 9
 ndim 2
 verbose 1
 epsi 10
-itmax 3
+itmax 100
 haveweights 0
-eitmax 5
+eitmax 10
 eepsi 10
-everbose 1
+everbose 0
 ditmax 5
 depsi 10
 dverbose 1

@@ -19,11 +19,12 @@ smacofUF <- function(name) {
   columnlabels <- smacofMakeColumnLabels(ncols, havecolumnlabels, name)
   if (centroid) {
     gmat <- smacofMakeIndicator(name, data, centroid)
-    dvec <- colSums(gmat)
-    hmat <- rbind(diag(nrows), t(gmat) / pmax(dvec, 1))
+    dvec <- pmax(colSums(gmat), 1)
+    hmat <- rbind(diag(nrows), t(gmat) / dvec)
   }
   if (haveweights) {
     wmat <- smacofReadWeights(name)
+    wmat <- matrix(wmat, nrows, ncols)
   } else {
     wmat <- matrix(1, nrows, ncols)
   }
@@ -37,21 +38,25 @@ smacofUF <- function(name) {
     smacofElegantUF(data, ndim, itmax = eitmax, epsi = eepsi, verbose = everbose)
   hold <- smacofSplitMatrix(zold, nrows, ncols)
   if (centroid) {
-    ymat <- crossprod(gmat, hold$x) / pmax(1, dvec)
+    ymat <- crossprod(gmat, hold$x) / dvec
     zold <- rbind(hold$x, ymat)
     hold <- smacofSplitMatrix(zold, nrows, ncols)
   }
   dold <- smacofDistancesUF(hold$x, hold$y)
+  labd <- sum(wmat * data * dold) / sum(wmat * dold ^ 2)
+  dold <- labd * dold
+  zold <- labd * zold
+  hold <- smacofSplitMatrix(zold, nrows, ncols)
   sold <- sum(wmat * (data - dold) ^ 2)
   repeat {
     bold <- wmat * data / dold
     bold <- smacofExpandMatrix(bold)
     znew <- vinv %*% bold %*% zold
     hnew <- smacofSplitMatrix(znew, nrows, ncols)
-    xnew <- smacofImproveRowScores(hold$x, hold$y, hnew$x, hnew$y, vmat, xnorm)
+    #hnew$x <- smacofImproveRowScores(hold$x, hold$y, hnew$x, hnew$y, vmat, xnorm)
     if (centroid) {
       xnew <- smat %*% crossprod(hmat, vmat %*% znew)
-      ynew <- crossprod(gmat, xnew) / pmax(dvec, 1)
+      ynew <- crossprod(gmat, xnew) / dvec
       znew <- rbind(xnew, ynew)
     }
     hnew <- smacofSplitMatrix(znew, nrows, ncols)

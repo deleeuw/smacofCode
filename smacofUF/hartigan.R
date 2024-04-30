@@ -1,0 +1,18 @@
+hartigan <-
+structure(list(thread = c("N", "N", "N", "N", "N", "N", "N", 
+"N", "N", "Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y", 
+"N", "N", "N", "Y"), head = c("F", "F", "F", "F", "F", "F", "C", 
+"C", "C", "O", "R", "Y", "R", "Y", "R", "O", "Y", "Y", "Y", "Y", 
+"F", "F", "F", "O"), indentation = c("N", "N", "N", "N", "N", 
+"N", "N", "N", "N", "T", "L", "L", "L", "L", "L", "L", "L", "L", 
+"L", "L", "N", "N", "N", "L"), bottom = c("S", "S", "S", "F", 
+"S", "S", "S", "S", "S", "S", "S", "S", "S", "S", "F", "F", "F", 
+"F", "F", "F", "S", "S", "S", "S"), length = c(1L, 4L, 2L, 2L, 
+2L, 2L, 5L, 3L, 3L, 5L, 4L, 4L, 2L, 2L, 4L, 1L, 1L, 1L, 1L, 1L, 
+1L, 1L, 1L, 1L), brass = c("N", "N", "N", "N", "N", "N", "N", 
+"N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", 
+"Y", "Y", "Y", "Y")), class = "data.frame", row.names = c("tack", 
+"nail1", "nail2", "nail3", "nail4", "nail5", "nail6", "nail7", 
+"nail8", "screw1", "screw2", "screw3", "screw4", "screw5", "bolt1", 
+"bolt2", "bolt3", "bolt4", "bolt5", "bolt6", "tack1", "tack2", 
+"nailb", "screwb"))

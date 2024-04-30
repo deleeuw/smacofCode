@@ -6,12 +6,12 @@ smacofDoubleCenterUF <- function(x) {
   return(x)
 }
 
-smacofDistancesUF <- function(xold, yold, square = FALSE) {
-  xsum <- rowSums(xold ^ 2)
-  ysum <- rowSums(yold ^ 2)
-  dsqu <- outer(xsum, ysum, "+") - 2 * tcrossprod(xold, yold)
-  if (square) {
-    return(dsqu)
+smacofDistancesUF <- function(x, y, squared = FALSE) {
+  xsum <- rowSums(x ^ 2)
+  ysum <- rowSums(y ^ 2)
+  dsqu <- outer(xsum, ysum, "+") - 2 * tcrossprod(x, y)
+  if (squared) {
+    return(abs(dsqu))
   } else {
     return(sqrt(abs(dsqu)))
   }
@@ -49,11 +49,7 @@ smacofElegantUF <-
     ddia <- sqrt(ssvd$d[1:ndim])
     xold <- ssvd$u %*% diag(ddia)
     yold <- ssvd$v %*% diag(ddia)
-    dold <- smacofDistancesUF(xold, yold, square = TRUE)
-    labd <- sum(ddat * dold) / sum(dold ^ 2)
-    dold <- labd * dold
-    xold <- labd * xold
-    yold <- labd * yold
+    dold <- smacofDistancesUF(xold, yold, squared = TRUE)
     resi <- ddat - dold
     sold <- sum(resi ^ 2)
     cold <- tcrossprod(rbind(xold, yold))
@@ -65,7 +61,7 @@ smacofElegantUF <-
       cnew <- tcrossprod(znew)
       xnew <- znew[1:nrows,]
       ynew <- znew[nrows + 1:ncols,]
-      dnew <- smacofDistancesUF(xnew, ynew, square = TRUE)
+      dnew <- smacofDistancesUF(xnew, ynew, squared = TRUE)
       resi <- ddat - dnew
       snew <- sum(resi ^ 2)
       bnew <- smacofExpandMatrix(resi) / (nrows + ncols + 2)
