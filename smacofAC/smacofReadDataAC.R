@@ -33,3 +33,16 @@ smacofReadLabels <- function(name) {
   labels <- scan(fname, what = "character", quiet = TRUE)
   return(labels)
 }
+
+smacofReadUpperBounds <- function(name) {
+  fname <- paste(name, "UpperBounds.txt", sep = "")
+  upperBounds <- scan(fname, quiet = TRUE)
+  return(upperBounds)
+}
+
+smacofReadLowerBounds <- function(name) {
+  fname <- paste(name, "LowerBounds.txt", sep = "")
+  lowerBounds <- scan(fname, quiet = TRUE)
+  return(lowerBounds)
+}
+

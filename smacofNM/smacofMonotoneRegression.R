@@ -202,3 +202,41 @@ smacofSecondaryMonotoneRegression <- function(data, target) {
   }
   return(result)
 }
+
+smacofWeightedPava <-
+  function(x,
+           y,
+           w,
+           bold,
+           mlbd = NULL,
+           itmax = 1000,
+           epsi = 10,
+           verbose = TRUE) {
+    eps <- 10 ^ -epsi
+    itel <- 1
+    a <- crossprod(x, w %*% x)
+    mlbd <- max(eigen(a, only.values = TRUE)$values)
+    z <- drop(crossprod(x, w %*% y))
+    res <- y - x %*% bold
+    fold <- sum(res * (w %*% res))
+    repeat {
+      gold <- z - a %*% bold
+      bnew <- bold + gold / mlbd
+      bnew <- smacofPoolAdjacentViolaters(bnew)
+      res <- y - x %*% bnew
+      fnew <- sum(res * (w %*% res))
+      if (verbose) {
+        cat("itel ", formatC(itel, format = "d"),
+            "fold ", formatC(fold, digits = 10, format = "f"),
+            "fnew ", formatC(fnew, digits = 10, format = "f"),
+            "\n")
+      }
+      if ((itel == itmax) || ((fold - fnew) < eps)) {
+        break
+      }
+      fold <- fnew
+      bold <- bnew
+      itel <- itel + 1
+    }
+    return(list(b = bnew, f = fnew))
+  }

@@ -1,6 +1,10 @@
 smacofShepardPlot <-
   function(h,
            addc = h$addc,
+           constant = h$constant,
+           bounds = h$bounds,
+           deltaup = h$deltaup,
+           deltalw = h$deltalw,
            main = "ShepardPlot",
            fitlines = 0,
            colline = "RED",
@@ -15,9 +19,13 @@ smacofShepardPlot <-
     x <- h$delta[odelta]
     y <- h$evec[odelta]
     z <- h$dvec[odelta]
+    if (bounds) {
+    up <- h$deltaup[odelta]
+    lw <- h$deltalw[odelta]
+    } 
     plot(
       rbind(cbind(x, z), cbind(x, y)),
-      xlim = c(0, maxDelta),
+      xlim = c(minDelta, maxDelta),
       ylim = c(0, max(h$dvec)),
       xlab = "delta",
       ylab = "dhat and dist",
@@ -39,7 +47,20 @@ smacofShepardPlot <-
         lines(x = c(x[i], x[i]), y = c(y[i], z[i]))
       }
     }
-    abline(-addc, 1, col = colline, lwd = lwd)
+    if (constant && !bounds) {
+      abline(addc, 1, col = colline, lwd = lwd)
+    }
+    if (!constant && !bounds) {
+      abline(0, 1, col = colline, lwd = lwd)
+    }
+    if (!constant && bounds) {
+      lines(x, up, col = colline, lwd = lwd)
+      lines(x, lw, col = colline, lwd = lwd)
+    }
+    if (constant && bounds) {
+      lines(x, up + addc, col = colline, lwd = lwd)
+      lines(x, lw + addc, col = colline, lwd = lwd)
+    }
   }
 
 
@@ -83,10 +104,14 @@ smacofDistDhatPlot <- function(h,
                                cex = 1,
                                lwd = 2,
                                pch = 16) {
+  lw <- min(c(h$evec,h$dvec))
+  up <- max(c(h$evec,h$dvec))
   par(pty = "s")
   plot(
-    h$dnew,
-    h$dhat,
+    h$dvec,
+    h$evec,
+    xlim = c(lw, up),
+    ylim = c(lw, up),
     xlab = "distance",
     ylab = "disparity",
     main = main,
@@ -96,10 +121,10 @@ smacofDistDhatPlot <- function(h,
   )
   abline(0, 1)
   if (fitlines) {
-    m <- length(h$dnew)
+    m <- length(h$dvec)
     for (i in 1:m) {
-      x <- h$dnew[i]
-      y <- h$dhat[i]
+      x <- h$dvec[i]
+      y <- h$evec[i]
       z <- (x + y) / 2
       a <- matrix(c(x, z, y, z), 2, 2)
       lines(a, col = colline, lwd = lwd)
