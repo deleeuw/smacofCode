@@ -94,11 +94,11 @@ smacofAC <- function(name) {
         "itel ",
         formatC(itel, format = "d"),
         "sold ",
-        formatC(sold, digits = 10, format = "f"),
+        formatC(sold, width = width, digits = precision, format = "f"),
         "smid ",
-        formatC(smid, digits = 10, format = "f"),
+        formatC(smid, width = width, digits = precision, format = "f"),
         "snew ",
-        formatC(snew, digits = 10, format = "f"),
+        formatC(snew, width = width, digits = precision, format = "f"),
         "\n"
       )
     }

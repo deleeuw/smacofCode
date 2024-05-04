@@ -98,7 +98,7 @@ smacofConfigurationPlot <-
 
 smacofDistDhatPlot <- function(h,
                                fitlines = 1,
-                               colline = "RED",
+                               colline = "BLACK",
                                colpoint = "BLUE",
                                main = "Dist-Dhat Plot",
                                cex = 1,
@@ -119,7 +119,7 @@ smacofDistDhatPlot <- function(h,
     pch = pch,
     col = colpoint
   )
-  abline(0, 1)
+  abline(0, 1, col = "RED", lwd = 2)
   if (fitlines) {
     m <- length(h$dvec)
     for (i in 1:m) {
