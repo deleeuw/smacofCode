@@ -1,0 +1,17 @@
+nobj   9
+ndim   2
+init   2
+width   15
+precision   10
+haveweights   0
+havelabels 1
+itmax   100000
+epsi   10
+verbose   1
+anyplex 0
+unique 0
+
+
+
+
+
