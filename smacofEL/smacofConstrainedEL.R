@@ -1,6 +1,5 @@
 smacofConstrainedEllipse <-
   function(xbar,
-           ymat,
            vmat,
            itmax,
            eps,
@@ -9,38 +8,38 @@ smacofConstrainedEllipse <-
            itlop,
            circular) {
     itel <- 1
-    #eps <- 10.0 ^ -epsi
-    n <- nrow(xbar)
-    p <- ncol(xbar)
+    nobj <- nrow(xbar)
+    ndim <- ncol(xbar)
+    xcrc <- xbar / sqrt(rowSums(xbar ^ 2))
     if (circular) {
-      lbd <- diag(p)
+      lbd <- diag(ndim)
     } else {
       lbd <-
-        diag(crossprod(ymat, vmat %*% xbar)) / diag(crossprod(ymat, vmat %*% ymat))
+       colSums(xcrc * (vmat %*% xbar)) / colSums(xcrc * (vmat %*% xcrc))
       lbd <- diag(lbd)
     }
-    res <- xbar - ymat %*% lbd
+    res <- xbar - xcrc %*% lbd
     sold <- sum(res * (vmat %*% res))
     repeat {
       mlbd <- max(lbd ^ 2)
       for (klop in 1:itlop) {
-        for (i in 1:n) {
+        for (i in 1:nobj) {
           for (kper in 1:itper) {
             h <- vmat %*% res %*% lbd
-            g <- mlbd * vmat[i, i] * ymat[i,] + h[i,]
-            ymat[i,] <- g / sqrt(sum(g ^ 2))
-            res <- xbar - ymat %*% lbd
+            g <- mlbd * vmat[i, i] * xcrc[i,] + h[i,]
+            xcrc[i,] <- g / sqrt(sum(g ^ 2))
+            res <- xbar - xcrc %*% lbd
           }
         }
       }
       smid <- sum(res * (vmat %*% res))
       if (!circular) {
         lbd <-
-          diag(crossprod(ymat, vmat %*% xbar)) / diag(crossprod(ymat, vmat %*% ymat))
+          colSums(xcrc * (vmat %*% xbar)) / colSums(xcrc * (vmat %*% xcrc))
         mlbd <- max(lbd ^ 2)
         lbd <- diag(lbd)
       }
-      res <- xbar - ymat %*% lbd
+      res <- xbar - xcrc %*% lbd
       snew <- sum(res * (vmat %*% res))
       dfff <- sold - snew
       if (verbose) {
@@ -76,9 +75,9 @@ smacofConstrainedEllipse <-
       sold <- snew
     }
     return(list(
-      y = ymat,
+      ymat = xcrc,
       lbd = lbd,
-      xfit = ymat %*% lbd,
+      xfit = xcrc %*% lbd,
       s = snew,
       itel = itel
     ))

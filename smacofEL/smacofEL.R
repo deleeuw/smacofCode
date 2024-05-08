@@ -1,46 +1,63 @@
 
-source("smacofReadData.R")
-source("smacofConvert.R")
 source("smacofMakeInitial.R")
 source("smacofGuttmanTransformEL.R")
 source("smacofUtilities.R")
 source("smacofConstrainedEL.R")
 
-smacofEL <- function(name) {
-  name <- deparse(substitute(name))
-  smacofReadParameters(name, environment())
-  eps <- 10.0 ^ -epsi
-  delta <- smacofReadDissimilarities(name)
-  delta <- as.matrix(smacofRMVectorToDist(delta))
-  labels <- smacofMakeLabels(nobj, havelabels, name)
-  if (haveweights) {
-    wvec <- smacofReadWeights(name)
-    wmat <- as.matrix(smacofRMVectorToDist(wvec))
+smacofEL <- function(delta,
+                        ndim = 2,
+                        wmat = NULL,
+                        xini = NULL,
+                        labels = NULL,
+                        width = 15,
+                        precision = 10,
+                        itmax = 1000,
+                        eps = 1e-10,
+                        verbose = TRUE,
+                        init = 1,
+                        eitmax = 10,
+                        eeps = 1e-10,
+                        everbose = FALSE,
+                        itper = 1,
+                        itlop = 1,
+                        circular = 1) {
+  delta <- as.matrix(delta)
+  nobj <- nrow(delta)
+  if (is.null(wmat)) {
+    wmat <- 1 - diag(nrow(delta))
   } else {
-    wmat <- 1 - diag(nobj)
+    wmat <- as.matrix(wmat)
   }
   vmat <- smacofMakeVmat(wmat)
   vinv <- solve(vmat + (1.0 / nobj)) - (1.0 / nobj)
-  xold <-
-      smacofMakeInitialConfiguration(name, init, delta, nobj, ndim)
+  if (is.null(xini)) {
+    xold <-
+      smacofMakeInitialConfiguration(init, delta, nobj, ndim)
+    xnrm <- xold / sqrt(rowSums(xold ^ 2))
+    if (circular) {
+      xold <- xnrm
+    } else {
+      lbd <-
+        colSums(xnrm * (vmat %*% xold)) / colSums(xnrm * (vmat %*% xnrm))
+      xold <- xnrm %*% diag(lbd)
+    }
+  }
   dmat <- smacofDistances(xold)
   sold <- sum(wmat * (delta - dmat) ^ 2) / 4
   itel <- 1
   repeat {
-    xnew <- smacofGuttmanTransformEL(
-      wmat,
-      vmat,
-      vinv,
-      delta,
-      dmat,
-      xold,
-      eitmax,
-      eepsi,
-      everbose,
-      itper,
-      itlop,
-      circular
-    )
+    xnew <- smacofGuttmanTransformEL(wmat,
+                                     vmat,
+                                     vinv,
+                                     delta,
+                                     dmat,
+                                     xold,
+                                     eitmax,
+                                     eeps,
+                                     everbose,
+                                     itper,
+                                     itlop,
+                                     circular)
     dmat <- smacofDistances(xnew)
     snew <- sum(wmat * (delta - dmat) ^ 2) / 4
     if (verbose) {
@@ -74,16 +91,12 @@ smacofEL <- function(name) {
   h <- list(
     nobj = nobj,
     ndim = ndim,
-    name = name,
     snew = snew,
     itel = itel,
     xnew = xnew,
     delta = delta,
     dmat = dmat,
     wmat = wmat,
-    ymat = ymat,
-    haveweights = haveweights,
-    havelabels = havelabels,
     labels = labels
   )
   return(h)

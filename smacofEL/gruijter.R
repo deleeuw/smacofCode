@@ -47,3 +47,7 @@ gruijter <-
     Upper = FALSE
   )
 
+indi <- c(6, 7, 2, 9, 1, 4, 5, 3, 8)
+gruijter <- as.matrix(gruijter)
+gruijter <- gruijter[indi, indi]
+labels <- row.names(gruijter)

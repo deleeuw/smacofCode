@@ -1,23 +1,28 @@
 
-source("smacofReadData.R")
-source("smacofConvert.R")
 source("smacofMakeInitial.R")
 source("smacofGuttmanTransformQQ.R")
 source("smacofUtilities.R")
 source("smacofConstrainedQQ.R")
 
-smacofQQ <- function(name) {
-  name <- deparse(substitute(name))
-  smacofReadParameters(name, environment())
-  eps <- 10.0 ^ -epsi
-  delta <- smacofReadDissimilarities(name)
-  delta <- as.matrix(smacofRMVectorToDist(delta))
-  labels <- smacofMakeLabels(nobj, havelabels, name)
-  if (haveweights) {
-    wvec <- smacofReadWeights(name)
-    wmat <- as.matrix(smacofRMVectorToDist(wvec))
+smacofQQ <- function(delta,
+                     ndim = 2,
+                     wmat = NULL,
+                     xini = NULL,
+                     labels = NULL,
+                     width = 15,
+                     precision = 10,
+                     itmax = 10000,
+                     eps = 1e-10,
+                     verbose = TRUE,
+                     init = 1,
+                     anyplex = 0,
+                     unique = 0) {
+  delta <- as.matrix(delta)
+  nobj <- nrow(delta)
+  if (is.null(wmat)) {
+    wmat <- 1 - diag(nrow(delta))
   } else {
-    wmat <- 1 - diag(nobj)
+    wmat <- as.matrix(wmat)
   }
   vmat <- smacofMakeVmat(wmat)
   vinv <- solve(vmat + (1.0 / nobj)) - (1.0 / nobj)
@@ -25,7 +30,7 @@ smacofQQ <- function(name) {
   ptot <- ndim
   if (ndim > 0) {
     xold <-
-      smacofMakeInitialConfiguration(name, init, delta, nobj, ndim)
+      smacofMakeInitialConfiguration(init, delta, nobj, ndim)
   }
   ymat <- NULL
   if (anyplex > 0) {
@@ -48,18 +53,16 @@ smacofQQ <- function(name) {
   itel <- 1
   repeat {
     xnew <-
-      smacofGuttmanTransformQQ(
-        wmat,
-        vmat,
-        vinv,
-        delta,
-        dmat,
-        xold,
-        ymat,
-        ndim,
-        anyplex,
-        unique
-      )
+      smacofGuttmanTransformQQ(wmat,
+                               vmat,
+                               vinv,
+                               delta,
+                               dmat,
+                               xold,
+                               ymat,
+                               ndim,
+                               anyplex,
+                               unique)
     dmat <- smacofDistances(xnew)
     snew <- sum(wmat * (delta - dmat) ^ 2) / 4
     if (verbose) {
@@ -93,7 +96,6 @@ smacofQQ <- function(name) {
   h <- list(
     nobj = nobj,
     ndim = ndim,
-    name = name,
     snew = snew,
     itel = itel,
     xnew = xnew,
@@ -101,8 +103,6 @@ smacofQQ <- function(name) {
     dmat = dmat,
     wmat = wmat,
     ymat = ymat,
-    haveweights = haveweights,
-    havelabels = havelabels,
     labels = labels
   )
   return(h)

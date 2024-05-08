@@ -1,30 +1,23 @@
 
 
-
-source("smacofConvert.R")
 source("smacofMakeInitial.R")
 source("smacofGuttmanTransformEL.R")
 source("smacofUtilities.R")
 source("smacofConstrainedEL.R")
 
-smacofELAlt <- function(delta,
-                        ndim = 2,
-                        wmat = NULL,
-                        xini = NULL,
-                        labels = NULL,
-                        width = 15,
-                        precision = 10,
-                        itmax = 1000,
-                        eps = 1e-10,
-                        verbose = TRUE,
-                        init = 2,
-                        eitmax = 10,
-                        eeps = 1e-10,
-                        everbose = FALSE,
-                        itper = 1,
-                        itlop = 1,
-                        circular = 1) {
+smacofEL <- function(delta,
+                     ylist,
+                     wmat = NULL,
+                     xini = NULL,
+                     labels = NULL,
+                     width = 15,
+                     precision = 10,
+                     itmax = 1000,
+                     eps = 1e-10,
+                     verbose = TRUE,
+                     init = 1) {
   delta <- as.matrix(delta)
+  ndim <- nrow(ylist[[1]])
   nobj <- nrow(delta)
   if (is.null(wmat)) {
     wmat <- 1 - diag(nrow(delta))
@@ -36,6 +29,14 @@ smacofELAlt <- function(delta,
   if (is.null(xini)) {
     xold <-
       smacofMakeInitialConfiguration(init, delta, nobj, ndim)
+    xnrm <- xold / sqrt(rowSums(xold ^ 2))
+    if (circular) {
+      xold <- xnrm
+    } else {
+      lbd <-
+        colSums(xnrm * (vmat %*% xold)) / colSums(xnrm * (vmat %*% xnrm))
+      xold <- xnrm %*% diag(lbd)
+    }
   }
   dmat <- smacofDistances(xold)
   sold <- sum(wmat * (delta - dmat) ^ 2) / 4
@@ -86,16 +87,12 @@ smacofELAlt <- function(delta,
   h <- list(
     nobj = nobj,
     ndim = ndim,
-    name = name,
     snew = snew,
     itel = itel,
     xnew = xnew,
     delta = delta,
     dmat = dmat,
     wmat = wmat,
-    ymat = ymat,
-    haveweights = haveweights,
-    havelabels = havelabels,
     labels = labels
   )
   return(h)
