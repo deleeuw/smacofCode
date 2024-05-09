@@ -1,4 +1,5 @@
 
+
 source("smacofReadDataAC.R")
 source("smacofConvertAC.R")
 source("smacofMakeInitialStuffAC.R")
@@ -9,45 +10,53 @@ source("smacofWriteAC.R")
 source("smacofDerivativesAC.R")
 source("smacofTransformAC.R")
 
-smacofAC <- function(name) {
-  name <- deparse(substitute(name))
-  smacofReadParameters(name, environment())
-  eps <- 10.0 ^ -epsi
-  delta <- smacofReadDissimilarities(name)
-  addc <- 0.0
-  evec <- delta + addc
-  deltaup <- 0.0
-  deltalw <- 0.0
-  minDelta <- min(delta)
-  maxDelta <- max(delta)
-  rngDelta <- maxDelta - minDelta
-  if (bounds == 1) {
-    deltaup <- smacofReadUpperBounds(name)
-    deltalw <- smacofReadLowerBounds(name)
+smacofAC <- function(delta,
+                     ndim,
+                     wmat = NULL,
+                     xold = NULL,
+                     bounds = 0,
+                     constant = 0,
+                     deltalw = NULL,
+                     deltaup = NULL,
+                     alpha = 2,
+                     labels = row.names(delta),
+                     width = 15,
+                     precision = 10,
+                     itmax = 1000,
+                     eps = 1e-10,
+                     verbose = TRUE,
+                     init = 1) {
+  smacofSetupAC <- function(delta, wmat, bounds, deltalw, deltaup) {
+    addc <- 0.0
+    evec <- delta + addc
+    deltaup <- 0.0
+    deltalw <- 0.0
+    minDelta <- min(delta)
+    maxDelta <- max(delta)
+    rngDelta <- maxDelta - minDelta
+    if (bounds == 2) {
+      deltaup <- delta + rngDelta / alpha
+      deltalw <- delta - rngDelta / alpha
+    }
+    if (bounds == 3) {
+      deltaup <- (1 + 1 / alpha) * delta
+      deltalw <- (1 - 1 / alpha) * delta
+    }
   }
-  if (bounds == 2) {
-    deltaup <- delta + rngDelta / alpha
-    deltalw <- delta - rngDelta / alpha
-  }
-  if (bounds == 3) {
-    deltaup <- (1 + 1 / alpha) * delta
-    deltalw <- (1 - 1 / alpha) * delta
-  }
-  labels <- smacofMakeLabels(nobj, havelabels, name)
-  if (haveweights) {
-    wvec <- smacofReadWeights(name)
-    wsum <- sum(weights)
-    vinv <- smacofMakeVinv(wvec)
+  h <- smacofSetupAC(delta, wmat, bounds, deltalw, deltaup)
+  if (is.null(wmat)) {
+    wmat <- 1 - diag(nobj)
   } else {
-    wvec <- numeric(0)
-    vinv <- numeric(0)
-    wsum <- nobj * (nobj - 1) / 2
+    wmat <- as.matrix(wmat)
   }
-  xold <-
-    smacofMakeInitialConfiguration(name, init, delta, nobj, ndim)
+  vmat <- smacofMakeVmat(wmat)
+  vinv <- solve(vmat + (1.0 / nobj)) - (1.0 / nobj)
+  if (is.null(xold)) {
+    xold <-
+      smacofMakeInitialConfiguration(name, init, delta, nobj, ndim)
+  }
   dvec <- smacofDistances(nobj, ndim, xold)
-  sold <- ifelse(haveweights, sum(wvec * (evec - dvec) ^ 2) / 2,
-                 sum((evec - dvec) ^ 2) / 2)
+  sold <- sum(wvec * (evec - dvec) ^ 2) / 4
   itel <- 1
   repeat {
     hg <-
@@ -71,11 +80,11 @@ smacofAC <- function(name) {
     smid <- hg$snew
     if (constant && !bounds) {
       h <- smacofNoBoundsConstant(delta,
-                                     dvec,
-                                     wvec,
-                                     haveweights,
-                                     wsum,
-                                     minDelta)
+                                  dvec,
+                                  wvec,
+                                  haveweights,
+                                  wsum,
+                                  minDelta)
       evec <- h$evec
       addc <- h$addc
     }
@@ -87,18 +96,32 @@ smacofAC <- function(name) {
       evec <- h$evec
       addc <- h$addc
     }
-    snew <- ifelse(haveweights, sum(wvec * (evec - dvec) ^ 2) / 2,
-                   sum((evec - dvec) ^ 2) / 2)
+    snew <- sum(wvec * (evec - dvec) ^ 2) / 4
     if (verbose) {
       cat(
         "itel ",
         formatC(itel, format = "d"),
         "sold ",
-        formatC(sold, width = width, digits = precision, format = "f"),
+        formatC(
+          sold,
+          width = width,
+          digits = precision,
+          format = "f"
+        ),
         "smid ",
-        formatC(smid, width = width, digits = precision, format = "f"),
+        formatC(
+          smid,
+          width = width,
+          digits = precision,
+          format = "f"
+        ),
         "snew ",
-        formatC(snew, width = width, digits = precision, format = "f"),
+        formatC(
+          snew,
+          width = width,
+          digits = precision,
+          format = "f"
+        ),
         "\n"
       )
     }

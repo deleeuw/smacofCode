@@ -51,10 +51,3 @@ indi <- c(6, 7, 2, 9, 1, 4, 5, 3, 8)
 gruijter <- as.matrix(gruijter)
 gruijter <- gruijter[indi, indi]
 labels <- row.names(gruijter)
-
-ylist <-
-list(structure(c(1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 
-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1), dim = c(9L, 3L)), structure(c(1, 
-0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 
-0, 0, 1, 0, 0), dim = c(9L, 3L)))
-

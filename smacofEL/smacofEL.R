@@ -7,7 +7,7 @@ source("smacofConstrainedEL.R")
 smacofEL <- function(delta,
                         ndim = 2,
                         wmat = NULL,
-                        xini = NULL,
+                        xold = NULL,
                         labels = NULL,
                         width = 15,
                         precision = 10,
@@ -30,7 +30,7 @@ smacofEL <- function(delta,
   }
   vmat <- smacofMakeVmat(wmat)
   vinv <- solve(vmat + (1.0 / nobj)) - (1.0 / nobj)
-  if (is.null(xini)) {
+  if (is.null(xold)) {
     xold <-
       smacofMakeInitialConfiguration(init, delta, nobj, ndim)
     xnrm <- xold / sqrt(rowSums(xold ^ 2))

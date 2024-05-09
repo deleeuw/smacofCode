@@ -1,59 +1,50 @@
-
+library(MASS)
 
 source("smacofMakeInitial.R")
-source("smacofGuttmanTransformEL.R")
+source("smacofGuttmanTransformLN.R")
 source("smacofUtilities.R")
-source("smacofConstrainedEL.R")
+source("smacofConstrainedLN.R")
 
-smacofEL <- function(delta,
-                     ylist,
+smacofLN <- function(delta,
+                     ylist, # a list of matrices
+                     ndim,
                      wmat = NULL,
-                     xini = NULL,
+                     xold = NULL,
                      labels = NULL,
                      width = 15,
                      precision = 10,
                      itmax = 1000,
                      eps = 1e-10,
                      verbose = TRUE,
-                     init = 1) {
+                     init = 1,
+                     atype = 1) {
   delta <- as.matrix(delta)
-  ndim <- nrow(ylist[[1]])
   nobj <- nrow(delta)
+  ncls <- sapply(ylist, ncol)
   if (is.null(wmat)) {
-    wmat <- 1 - diag(nrow(delta))
+    wmat <- 1 - diag(nobj)
   } else {
     wmat <- as.matrix(wmat)
   }
   vmat <- smacofMakeVmat(wmat)
   vinv <- solve(vmat + (1.0 / nobj)) - (1.0 / nobj)
-  if (is.null(xini)) {
+  if (is.null(xold)) {
     xold <-
       smacofMakeInitialConfiguration(init, delta, nobj, ndim)
-    xnrm <- xold / sqrt(rowSums(xold ^ 2))
-    if (circular) {
-      xold <- xnrm
-    } else {
-      lbd <-
-        colSums(xnrm * (vmat %*% xold)) / colSums(xnrm * (vmat %*% xnrm))
-      xold <- xnrm %*% diag(lbd)
-    }
   }
+  xold <- smacofConstrainedLinear(xold, ylist, vmat, atype) 
   dmat <- smacofDistances(xold)
   sold <- sum(wmat * (delta - dmat) ^ 2) / 4
   itel <- 1
   repeat {
-    xnew <- smacofGuttmanTransformEL(wmat,
-                                     vmat,
-                                     vinv,
-                                     delta,
-                                     dmat,
-                                     xold,
-                                     eitmax,
-                                     eeps,
-                                     everbose,
-                                     itper,
-                                     itlop,
-                                     circular)
+    xnew <- smacofGuttmanTransformLN(wmat,
+                                      vmat,
+                                      vinv,
+                                      delta,
+                                      dmat,
+                                      xold,
+                                      ylist,
+                                      atype)
     dmat <- smacofDistances(xnew)
     snew <- sum(wmat * (delta - dmat) ^ 2) / 4
     if (verbose) {
@@ -97,3 +88,4 @@ smacofEL <- function(delta,
   )
   return(h)
 }
+

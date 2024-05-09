@@ -23,7 +23,7 @@ smacofMakeVmat <- function(wmat) {
 
 smacofMakeBmat <- function(wmat, delta, dmat) {
   n <- nrow(delta)
-  bmat <- -wmat * delta / (dmat + diag(n))
+  bmat <- -wmat * delta / pmax(dmat, 1)
   diag(bmat) <- -rowSums(bmat)
   return(bmat)
 }
