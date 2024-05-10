@@ -2,9 +2,26 @@
 
 Code for smacof MDS 
 
-part 1: Smacof Basics
-part 2: Metric Analysis of I times I data (smacofAC)
-part 3: Nonlinear Analysis of I times I data (smacofBS)
-part 4: Nonmetric Analysis of I times I data (smacofNM)
-part 5: Unfolding of I times J data (smacofUF)
-part 6: Homogeneity Analysis of I times J times K data (smacofHO)
+Ultimately this should be structured as modules. If you
+want a circular configuration and your data are triads,
+you combine the triad *transformation module* (currently in smacofTR) 
+with the circular *Guttmnan module* (currently in smacofEL).
+
+At the moment I have given up on the goal of improving
+memory use and speed -- first I create a codebase in
+R, then I'll figure out the optimization (using C).
+
+smacofAC - Metric with bounds and/or additive constant
+smacofBS - Non-linear with B-splines
+smacofDB - Stress formula 2 (to be incorporated)
+smacofEL - Constrained, spheres and ellipsoids
+smacofHO - Rectangular, non-metric, Homogeneity Analysis
+smacofID - Individual Differences
+smacofLN - Constrained, Linear Constraints
+smacofNM - Non-metric (to be split)
+smacofPC - Non-metric, Paired Comparisions
+smacofQQ - Constrained, simplex, circumplex, uniqueness
+smacofRO - Non-metric, Full/ Conditional Rank orders
+smacofTR - Non-metric, Triads and Propellors
+smacofUF - Rectangular, metric, Unfolding 
+
