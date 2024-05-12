@@ -8,7 +8,6 @@ source("smacofUtilities.R")
 source("smacofGuttmanLoop.R")
 
 smacofRO <- function(data,
-                     nobj,
                      ndim,
                      xold = NULL,
                      labels = NULL,
@@ -22,6 +21,7 @@ smacofRO <- function(data,
                      kverbose = 0,
                      init = 1,
                      ties = 1) {
+  nobj <- max(data[, 1])
   delta <- data[, 3]
   evec <- data[, 3]
   wvec <- data[, 4]

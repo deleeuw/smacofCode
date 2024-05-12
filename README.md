@@ -21,7 +21,7 @@ R, then I'll figure out the optimization (using C).
 * smacofLN - Constrained, Linear Constraints
 * smacofPC - Non-metric, Paired Comparisions
 * smacofQQ - Constrained, simplex, circumplex, uniqueness
-* smacofRO - Non-metric, Full/ Conditional Rank orders
+* smacofRO - Non-metric, Rank orders
 * smacofTR - Non-metric, Triads and Propellors
 * smacofUF - Rectangular, metric, Unfolding 
 
