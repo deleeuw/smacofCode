@@ -13,12 +13,12 @@ R, then I'll figure out the optimization (using C).
 
 * smacofAC - Metric with bounds and/or additive constant
 * smacofBS - Non-linear with B-splines
+* smacofCR - Non-metric, Conditional rank orders
 * smacofDB - Stress formula 2 (to be incorporated)
 * smacofEL - Constrained, spheres and ellipsoids
 * smacofHO - Rectangular, non-metric, Homogeneity Analysis
 * smacofID - Individual Differences
 * smacofLN - Constrained, Linear Constraints
-* smacofNM - Non-metric (to be split)
 * smacofPC - Non-metric, Paired Comparisions
 * smacofQQ - Constrained, simplex, circumplex, uniqueness
 * smacofRO - Non-metric, Full/ Conditional Rank orders

@@ -1,11 +1,6 @@
 smacofShepardPlot <-
   function(h,
            main = "ShepardPlot",
-           intercept = h$intercept,
-           anchor = h$anchor,
-           transform = h$transform,
-           innerKnots = h$innerKnots,
-           knotlines = 0,
            fitlines = 0,
            colline = "RED",
            colpoint = "BLUE",
@@ -19,14 +14,9 @@ smacofShepardPlot <-
     x <- h$delta[odelta]
     y <- h$evec[odelta]
     z <- h$dvec[odelta]
-    if (anchor) {
-      boundaryKnots <- c(0, maxDelta)
-    } else {
-      boundaryKnots <- c(minDelta, maxDelta)
-    }
     plot(
       rbind(cbind(x, z), cbind(x, y)),
-      xlim = c(0, maxDelta),
+      xlim = c(minDelta, maxDelta),
       ylim = c(0, max(h$dvec)),
       xlab = "delta",
       ylab = "dhat and dist",
@@ -43,46 +33,16 @@ smacofShepardPlot <-
            col = colline,
            cex = cex,
            pch = pch)
-    if (transform && knotlines) {
-      for (i in 1:length(innerKnots)) {
-        abline(v = innerKnots[i])
-      }
-    }
     if (fitlines) {
       for (i in 1:length(x)) {
         lines(x = c(x[i], x[i]), y = c(y[i], z[i]))
       }
     }
-    if (transform) {
-      x <- seq(boundaryKnots[1], boundaryKnots[2], length = resolution)
-      basis <- bSpline(
-        x,
-        knots = innerKnots,
-        degree = h$degree,
-        Boundary.knots = boundaryKnots,
-        intercept = intercept
-      )
-      if (h$ordinal) {
-        basis <-
-          t(apply(basis, 1, function(x)
-            rev(cumsum(rev(
-              x
-            )))))
-      }
-      y <- drop(basis %*% h$coef)
-      if (h$degree == 0) {
-        smacofPlotStepFunction(x, y, innerKnots, maxDelta, colline, lwd)
-      } else {
-        lines(x,
-              y,
-              type = "l",
-              lwd = lwd,
-              col = colline)
-      }
-    }
-    else {
-      abline(0, 1, col = colline, lwd = lwd)
-    }
+    lines(x,
+          y,
+          type = "l",
+          lwd = lwd,
+          col = colline)
   }
 
 smacofPlotStepFunction <-
@@ -117,8 +77,8 @@ smacofConfigurationPlot <-
            pch = 16,
            col = "RED",
            cex = 1.5) {
-    xnew <- matrix(h$xnew, h$nobj, h$ndim, byrow = TRUE)
-    if (h$havelabels == 3) {
+    xnew <- h$xnew
+    if (is.null(labels)) {
       plot(
         xnew[, c(dim1, dim2)],
         xlab = paste("dimension", dim1),

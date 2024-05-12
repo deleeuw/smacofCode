@@ -1,5 +1,4 @@
 
-
 smacofCenter <- function(x) {
   x <- apply(x, 2, function(x) x - mean(x))
   return(x)
@@ -11,9 +10,9 @@ smacofMakeVmat <- function(wmat) {
   return(vmat)
 }
 
-smacofMakeBmat <- function(wmat, delta, dmat) {
-  n <- nrow(delta)
-  bmat <- -wmat * delta / (dmat + diag(n))
+smacofMakeBmat <- function(wmat, dhat, dmat) {
+  nobj <- nrow(dhat)
+  bmat <- -wmat * dhat / (dmat + diag(nobj))
   diag(bmat) <- -rowSums(bmat)
   return(bmat)
 }
