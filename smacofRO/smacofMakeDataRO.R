@@ -1,3 +1,4 @@
+
 smacofMakeRankOrderData <-
   function(delta,
            weights = NULL,

@@ -1,7 +1,8 @@
+
 smacofShepardPlot <-
   function(h,
            main = "ShepardPlot",
-           fitlines = 0,
+           fitlines = TRUE,
            colline = "RED",
            colpoint = "BLUE",
            resolution = 100,
@@ -11,6 +12,7 @@ smacofShepardPlot <-
     maxDelta <- max(h$delta)
     minDelta <- min(h$delta)
     odelta <- order(h$delta)
+    print(odelta)
     x <- h$delta[odelta]
     y <- h$evec[odelta]
     z <- h$dvec[odelta]
@@ -45,30 +47,6 @@ smacofShepardPlot <-
           col = colline)
   }
 
-smacofPlotStepFunction <-
-  function(dx,
-           dy,
-           dknots,
-           maxDelta,
-           col = colline,
-           lwd = lwd) {
-    nknots <- length(dknots)
-    y <- dy[which(dx <= dknots[1])][1]
-    lines(c(0, dknots[1]), c(y, y), lwd = lwd, col = col)
-    for (i in 1:(nknots - 1)) {
-      y <- dy[which((dx <= dknots[i + 1]) & (dx > dknots[i]))][1]
-      lines(c(dknots[i], dknots[i + 1]),
-            c(y, y),
-            lwd = lwd,
-            col = col)
-    }
-    y <- dy[which(dx > dknots[nknots])][1]
-    lines(c(dknots[nknots], 2 * maxDelta),
-          c(y, y),
-          lwd = lwd,
-          col = col)
-  }
-
 smacofConfigurationPlot <-
   function(h,
            main = "ConfigurationPlot",
@@ -76,7 +54,7 @@ smacofConfigurationPlot <-
            dim2 = 2,
            pch = 16,
            col = "RED",
-           cex = 1.5) {
+           cex = 1.0) {
     xnew <- h$xnew
     if (is.null(labels)) {
       plot(
@@ -102,17 +80,17 @@ smacofConfigurationPlot <-
   }
 
 smacofDistDhatPlot <- function(h,
-                               fitlines = 1,
+                               fitlines = TRUE,
                                colline = "RED",
                                colpoint = "BLUE",
                                main = "Dist-Dhat Plot",
-                               cex = 1,
+                               cex = 1.0,
                                lwd = 2,
                                pch = 16) {
   par(pty = "s")
   plot(
     h$dvec,
-    h$dhat,
+    h$evec,
     xlab = "distance",
     ylab = "disparity",
     main = main,
@@ -120,15 +98,15 @@ smacofDistDhatPlot <- function(h,
     pch = pch,
     col = colpoint
   )
-  abline(0, 1)
+  abline(0, 1, col = colline, lwd = lwd)
   if (fitlines) {
     m <- length(h$dvec)
     for (i in 1:m) {
       x <- h$dvec[i]
-      y <- h$dhat[i]
+      y <- h$evec[i]
       z <- (x + y) / 2
       a <- matrix(c(x, z, y, z), 2, 2)
-      lines(a, col = colline, lwd = lwd)
+      lines(a, lwd = lwd)
     }
   }
 }

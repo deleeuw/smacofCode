@@ -1,3 +1,4 @@
+
 smacofMakeInitialConfiguration <-
   function(delta, wmat, ndim, init) {
     nobj <- nrow(delta)
@@ -8,7 +9,7 @@ smacofMakeInitialConfiguration <-
       xold <- smacofMaximumSum(delta, wmat, ndim)
     }
     if (init == 3) {
-      xold <- rnorm(nobj * ndim)
+      xold <- matrix(rnorm(nobj * ndim), nobj, ndim)
     }
     return(smacofCenter(xold))
   }

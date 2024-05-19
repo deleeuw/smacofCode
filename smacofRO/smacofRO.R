@@ -1,9 +1,9 @@
+
 source("smacofMakeInitialStuffRO.R")
 source("smacofMonotoneRegressionRO.R")
 source("smacofPlotsRO.R")
 source("smacofConvertRO.R")
 source("smacofMakeDataRO.R")
-source("smacofReadData.R")
 source("smacofUtilities.R")
 source("smacofGuttmanLoop.R")
 

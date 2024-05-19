@@ -1,3 +1,24 @@
+smacofAdditiveConstant <- function(tvec, dvec, wvec, constant, bounds) {
+  if (constant && !bounds) {
+    h <- smacofNoBoundsConstant(tvec,
+                                dvec,
+                                wvec,
+                                minDelta)
+    evec <- h$evec
+    addc <- h$addc
+  }
+  if (bounds && !constant) {
+    evec <- smacofBoundsNoConstant(deltaup, deltalw, dvec)
+    addc <- 0.0
+  }
+  if (bounds && constant) {
+    h <- smacofBoundsAndConstant(delta, dvec, deltaup, deltalw)
+    evec <- h$evec
+    addc <- h$addc
+  }
+  return(list(evec = evec, addc = addc))
+}
+
 
 smacofBoundsNoConstant <- function(deltaup, deltalw, dvec) {
   evec <- ifelse(dvec >= deltaup, deltaup, dvec)
