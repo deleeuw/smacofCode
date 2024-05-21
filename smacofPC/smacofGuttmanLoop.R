@@ -1,30 +1,26 @@
 
 
 smacofGuttmanLoop <-
-  function(nobj,
-           ndim,
-           itel,
+  function(itel,
            wsum,
            kitmax,
-           kepsi,
+           keps,
            kverbose,
            xold,
-           wstr,
            vinv,
            dhat,
-           dvec) {
-    keps <- 10.0 ^ -kepsi
+           dmat) {
     ktel <- 1
-    told <- sum(wstr * (dhat - dvec) ^ 2)
+    told <- sum(wsum * (dhat - dmat) ^ 2)
     repeat {
       xnew <-
-        smacofGuttmanTransform(nobj, ndim, wstr, vinv, dhat, dvec, xold)
-      dvec <- smacofDistances(nobj, ndim, xnew)
-      etas <- sum(wstr * (dvec ^ 2))
-      etaa <- sqrt(wsum / etas)
-      xnew <- xnew * etaa
-      dvec <- dvec * etaa
-      tnew <- sum(wstr * (dhat - dvec) ^ 2)
+        smacofGuttmanTransform(dhat, dmat, wsum, vinv, xold)
+      dmat <- smacofDistances(xnew)
+      etas <- sum(wsum * (dmat ^ 2))
+      etaa <- sqrt(etas)
+      xnew <- xnew / etaa
+      dmat <- dmat / etaa
+      tnew <- sum(wsum * (dhat - dmat) ^ 2)
       if (kverbose) {
         cat(
           "itel ",
@@ -45,52 +41,12 @@ smacofGuttmanLoop <-
       told <- tnew
       xold <- xnew
     }
-    return(list(
-      xnew = xnew,
-      dvec = dvec
-    ))
-  }
-
-
-smacofGuttmanTransform <-
-  function(nobj,
-           ndim,
-           wstr,
-           vinv,
-           dhat,
-           dvec,
-           xold) {
-    k <- 1
-    xaux <- rep(0, nobj * ndim)
-    xnew <- rep(0, nobj * ndim)
-    for (i in 2:nobj) {
-      ii <- (i - 1) * ndim
-      for (j in 1:(i - 1)) {
-        jj <- (j - 1) * ndim
-        for (s in 1:ndim) {
-          is <- ii + s
-          js <- jj + s
-          fac <- ((wstr[k] * dhat[k]) / dvec[k]) * (xold[is] - xold[js])
-          xaux[is] <- xaux[is] + fac
-          xaux[js] <- xaux[js] - fac
-        }
-        k <- k + 1
-      }
-    }
-    k <- 1
-    for (i in 2:nobj) {
-      ii <- (i - 1) * ndim
-      for (j in 1:(i - 1)) {
-        jj <- (j - 1) * ndim
-        for (s in 1:ndim) {
-          is <- ii + s
-          js <- jj + s
-          fac <- vinv[k] * (xaux[is] - xaux[js])
-          xnew[is] <- xnew[is] + fac
-          xnew[js] <- xnew[js] - fac
-        }
-        k <- k + 1
-      }
-    }
     return(xnew)
   }
+
+
+smacofGuttmanTransform <- function(dhat, dmat, wmat, vinv, xold) {
+  bmat <- smacofMakeBmat(wmat, dhat, dmat)
+  xnew <- vinv %*% bmat %*% xold
+  return(xnew)
+}

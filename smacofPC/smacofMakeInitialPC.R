@@ -1,20 +1,15 @@
 smacofMakeInitialConfiguration <-
-  function(name, init, data, datatype, nobj, ndim) {
+  function(data, nobj, ndim, init) {
     if (init == 1) {
-      xold <- smacofReadInitialConfiguration(name)
+      xold <- smacofMaximumSum(data, nobj, ndim)
     }
     if (init == 2) {
-      xold <- smacofMaximumSum(data, datatype, nobj, ndim)
+      xold <- matrix(rnorm(nobj * ndim), nobj, ndim)
     }
-    if (init == 3) {
-      xold <- rnorm(nobj * ndim)
-    }
-    return(smacofCenter(xold, nobj, ndim))
+    return(smacofCenter(xold))
   }
 
-
-
-smacofMaximumSum <- function(data, datatype, nobj, ndim) {
+smacofMaximumSum <- function(data, nobj, ndim) {
   n <- nobj
   m <- nrow(data)
   aij <- function(i, j, n) {
@@ -24,15 +19,6 @@ smacofMaximumSum <- function(data, datatype, nobj, ndim) {
     return(outer(ei - ej, ei - ej))
   }
   s <- matrix(0, n, n)
-  if (datatype == 1) {
-   for (r in 1:m) {
-     i <- data[r, 1]
-     j <- data[r, 2]
-     s[i, j] <- s[j, i] <- data[r, 3]
-   }
-   s <- -s
-   diag(s) <- -rowSums(s)
-  }
     for (r in 1:m) {
       i <- data[r, 1]
       j <- data[r, 2]
@@ -42,6 +28,5 @@ smacofMaximumSum <- function(data, datatype, nobj, ndim) {
     }
   e <- eigen(s)
   xini <- e$vectors[, 1:ndim] %*% diag(abs(sqrt(e$values[1:ndim])))
-  xini <- as.vector(t(xini))
   return(xini)
 }

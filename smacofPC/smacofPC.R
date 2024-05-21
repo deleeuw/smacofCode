@@ -1,14 +1,16 @@
 
-source("smacofMakeInitialStuffPC.R")
+source("smacofMakeInitialPC.R")
 source("smacofMonotoneRegressionPC.R")
 source("smacofPlotsPC.R")
 source("smacofConvertPC.R")
 source("smacofMakeDataPC.R")
+source("smacofCumulateEpsilonPC.R")
 source("smacofUtilities.R")
 source("smacofGuttmanLoop.R")
 
 smacofPC <- function(data,
-                     ndim,
+                     nobj = max(data),
+                     ndim = 2,
                      wmat = NULL,
                      xold = NULL,
                      labels = NULL,
@@ -21,54 +23,50 @@ smacofPC <- function(data,
                      keps = 1e-10,
                      kverbose = 0,
                      init = 1,
-                     ties = 1) {
-  nobj <- max(data)
-  emat <- smacofMakeMatrixFromData(data, evec, nobj)
-  wmat <- smacofMakeMatrixFromData(data, wvec, nobj)
+                     ties = 0) {
+  esum <- smacofCumulateEpsilon(data, nobj)
+  if (is.null(wmat)) {
+    wmat <- 1 - diag(nobj)
+  }
   vmat <- smacofMakeVmat(wmat)
+  vinv <- solve(vmat + (1.0 / nobj)) - (1.0 / nobj)
+  esum <- smacofCumulateEpsilon(data, nobj)
+  wsum <- esum * wmat
+  vmat <- smacofMakeVmat(wsum)
   vinv <- solve(vmat + (1.0 / nobj)) - (1.0 / nobj)
   if (is.null(xold)) {
     xold <-
-      smacofMakeInitialConfiguration(emat, wmat, ndim, init)
+      smacofMakeInitialConfiguration(data, nobj, ndim, init)
   }
   dmat <- smacofDistances(xold)
-  dvec <- smacofMakeDistanceVector(data, dmat)
-  etas <- sum(wvec * (dvec ^ 2))
+  etas <- sum(wsum * (dmat ^ 2))
   etaa <- sqrt(etas)
-  dvec <- dvec / etaa
   dmat <- dmat / etaa
-  etas <- sum(wvec * evec * dvec)
-  etat <- sum(wvec * (evec ^ 2))
-  evec <- evec * (etas / etat)
-  sold <- sum(wvec * (evec - dvec) ^ 2) / 2
+  hvec <- smacofPairsMonotoneRegression(data, dmat, esum, wmat, ties) 
+  dhat <- hvec$dhat
+  estr <- hvec$stress
+  sold <- estr + sum(wsum * (dhat - dmat) ^ 2) / 2
   itel <- 1
   repeat {
-    hg <-
-      smacofGuttmanLoop(data,
-                        itel,
-                        kitmax,
-                        keps,
-                        kverbose,
-                        xold,
-                        wmat,
-                        wvec,
-                        vinv,
-                        emat,
-                        evec,
-                        dmat,
-                        dvec)
-    dvec <- hg$dvec
-    dmat <- hg$dmat
-    xnew <- hg$xnew
-    smid <- sum(wvec * (evec - dvec) ^ 2) / 2
-    ht <-
-      smacofRankMonotoneRegression(data, dvec, wvec, ties)
-    evec <- ht$evec
-    if (ties == 1) {
-      data <- ht$data
-    }
-    emat <- smacofMakeMatrixFromData(data, evec, nobj)
-    snew <- sum(wvec * (evec - dvec) ^ 2) / 2
+    xnew <- smacofGuttmanLoop(itel,
+                      wsum,
+                      kitmax,
+                      keps,
+                      kverbose,
+                      xold,
+                      vinv,
+                      dhat,
+                      dmat)
+    dmat <- smacofDistances(xnew)
+    etas <- sum(wsum * (dmat ^ 2))
+    etaa <- sqrt(etas)
+    dmat <- dmat / etaa
+    smid <- estr + sum(wsum * (dhat - dmat) ^ 2) / 2
+    hvec <-
+      smacofPairsMonotoneRegression(data, dmat, esum, wmat, ties) 
+    dhat <- hvec$dhat
+    estr <- hvec$stress
+    snew <- estr + sum(wsum * (dhat - dmat) ^ 2) / 2
     if (verbose) {
       cat(
         "itel ",
@@ -110,10 +108,9 @@ smacofPC <- function(data,
     snew = snew,
     itel = itel,
     xnew = xnew,
-    delta = delta,
-    evec = evec,
-    dvec = dvec,
-    wvec = wvec,
+    dhat = dhat,
+    dmat = dmat,
+    wvec = wmat,
     labels = labels
   )
   return(h)

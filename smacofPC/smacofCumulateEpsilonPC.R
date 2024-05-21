@@ -1,18 +1,17 @@
 
-# cumulate epsilons in evec then multiply by wvec
+# accumulate epsilons in emat 
 
 smacofCumulateEpsilon <-
-  function(data, evec) {
+  function(data, nobj) {
     m <- nrow(data)
+    esum <- matrix(0, nobj, nobj)
       for (r in 1:m) {
         i <- data[r, 1]
         j <- data[r, 2]
-        ij <- sindex(i, j)
         k <- data[r, 3]
         l <- data[r, 4]
-        kl <- sindex(k, l)
-        evec[ij] <- evec[ij] + 1
-        evec[kl] <- evec[kl] + 1
+        esum[i, j] <- esum[i, j] + 1
+        esum[k, l] <- esum[k, l] + 1
       } # loop
-    return(evec)
+    return(esum + t(esum))
   }
