@@ -30,7 +30,7 @@ smacofPairsMonotoneRegression <- function(data, dmat, esum, wmat, ties) {
     dhat[i, j] <- dhat[i, j] + dhatij
     dhat[k, l] <- dhat[k, l] + dhatkl
   }
-  dhat <- dhat / (esum + diag(nobj))
+  dhat <- dhat / pmax(esum, 1)
   return(list(dhat = dhat + t(dhat), stress = stress))
 }
 

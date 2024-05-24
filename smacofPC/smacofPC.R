@@ -2,7 +2,6 @@
 source("smacofMakeInitialPC.R")
 source("smacofMonotoneRegressionPC.R")
 source("smacofPlotsPC.R")
-source("smacofConvertPC.R")
 source("smacofMakeDataPC.R")
 source("smacofCumulateEpsilonPC.R")
 source("smacofUtilities.R")
@@ -110,7 +109,9 @@ smacofPC <- function(data,
     xnew = xnew,
     dhat = dhat,
     dmat = dmat,
-    wvec = wmat,
+    wmat = wmat,
+    esum = esum,
+    wsum = wsum,
     labels = labels
   )
   return(h)

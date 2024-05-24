@@ -1,20 +1,33 @@
+
+source("smacofMakeInitial.R")
+source("smacofGuttmanLoop.R")
+source("smacofUtilities.R")
+source("smacofPlots.R")
+
 smacofPO <-
   function(delta,
-           interval = c(0, 4),
-           xe = NULL,
+           ndim = 2,
+           wmat = NULL,
+           xold = NULL,
+           labels = NULL,
+           init = 1,
            itmax = 1000,
            eps = 1e-10,
-           verbose = TRUE) {
+           verbose = TRUE,
+           kitmax = 5,
+           keps = 1e-10,
+           kverbose = FALSE,
+           interval = c(0, 4)) {
     nobj <- nrow(delta)
-    if (is.null(xe)) {
-      dd <- delta ^ 2
-      rd <- rowSums(dd) / nobj
-      sd <- mean(delta)
-      ce <- -.5 * (dd - outer(rd, rd) + sd)
-      ee <- eigen(ce)
-      xe <- ee$vectors[, 1:2] %*% diag(sqrt(ee$values[1:2]))
+    if (is.null(wmat)) {
+      wmat <- 1 - diag(nobj)
     }
-    de <- as.matrix(dist(xe))
+    vmat <- smacofMakeVmat(wmat)
+    vinv <- solve(vmat + (1.0 / nobj)) - (1.0 / nobj)
+    if (is.null(xold)) {
+      xold <- smacofMakeInitialConfiguration(delta, ndim, init) 
+    }
+    dmat <- smacofDistances(xold)
     if (interval[1] == interval[2]) {
       r <- interval[1]
       fixed <- TRUE
@@ -22,23 +35,29 @@ smacofPO <-
       r <- (interval[1] + interval[2]) / 2
       fixed <- FALSE
     }
-    g <- function(r, delta, de) {
-      return(sum(((delta ^ r) - de) ^ 2))
+    g <- function(r, delta, wmat, dmat) {
+      return(sum(wmat * ((delta ^ r) - dmat) ^ 2))
     }
-    ep <- delta ^ r
-    sold <- sum((ep - de) ^ 2)
+    dhat <- delta ^ r
+    sold <- sum(wmat * (dhat - dmat) ^ 2)
     itel <- 1
     repeat {
-      b <- -ep * ifelse(de == 0, 0, 1 / de)
-      diag(b) <- -rowSums(b)
-      xe <- (b %*% xe) / nobj
-      de <- as.matrix(dist(xe))
-      smid <- sum((ep - de) ^ 2)
+      xnew <- smacofGuttmanLoop(itel,
+                                 wmat,
+                                 kitmax,
+                                 keps,
+                                 kverbose,
+                                 xold,
+                                 vinv,
+                                 dhat,
+                                 dmat)
+      dmat <- smacofDistances(xnew)
+      smid <- sum(wmat * (dhat - dmat) ^ 2)
       if (!fixed) {
-        r <- optimize(g, interval = interval, delta = delta, de = de)$minimum
+        r <- optimize(g, interval = interval, delta = delta, wmat = wmat, dmat = dmat)$minimum
       }
-      ep <- delta ^ r
-      snew <- sum((ep - de) ^ 2)
+      dhat <- delta ^ r
+      snew <- sum(wmat * (dhat - dmat) ^ 2)
       if (verbose) {
         cat(
           "itel ",
@@ -59,11 +78,14 @@ smacofPO <-
       }
       itel <- itel + 1
       sold <- snew
+      xold <- xnew
     }
     return(list(
-      x = xe,
-      d = de,
-      e = ep,
+      xnew = xnew,
+      dmat = dmat,
+      dhat = dhat,
+      delta = delta,
+      labels = labels,
       r = r,
       itel = itel,
       stress = snew

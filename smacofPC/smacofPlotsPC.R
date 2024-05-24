@@ -49,16 +49,23 @@ smacofDistDhatPlot <- function(h,
     xlab = "distance",
     ylab = "disparity",
     main = main,
-    cex = cex,
-    pch = pch,
-    col = colpoint
+    type = "n"
   )
   abline(0, 1, col = colline, lwd = lwd)
-  if (fitlines) {
-    for (j in 1:(nobj - 1)) {
-      for (i in (j + 1):nobj) {
-        x <- h$dmat[i, j]
-        y <- h$dhat[i, j]
+  wsum <- h$esum * h$wmat
+  for (j in 1:(nobj - 1)) {
+    for (i in (j + 1):nobj) {
+      if (h$wsum[i, j] == 0) {
+        next
+      }
+      x <- h$dmat[i, j]
+      y <- h$dhat[i, j]
+      points(x,
+             y,
+             cex = cex,
+             pch = pch,
+             col = colpoint)
+      if (fitlines) {
         z <- (x + y) / 2
         a <- matrix(c(x, z, y, z), 2, 2)
         lines(a, lwd = lwd)

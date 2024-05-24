@@ -1,7 +1,7 @@
 
 
 source("smacofConvertAC.R")
-source("smacofMakeInitialStuffAC.R")
+source("smacofMakeInitialAC.R")
 source("smacofGuttmanLoop.R")
 source("smacofUtilities.R")
 source("smacofPlotsAC.R")

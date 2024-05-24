@@ -1,5 +1,5 @@
 
-source("smacofMakeInitialStuffRO.R")
+source("smacofMakeInitialRO.R")
 source("smacofMonotoneRegressionRO.R")
 source("smacofPlotsRO.R")
 source("smacofConvertRO.R")

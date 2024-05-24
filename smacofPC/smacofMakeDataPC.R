@@ -1,5 +1,4 @@
 
-
 smacofMakeAllPairs <- function(names, ties = 0) {
   outfile <- file("./output.txt", open = "w")
   n <- length(names)
@@ -95,4 +94,71 @@ smacofReadTwoPairs <- function(x, names, ties = 0) {
       return(c(xx, 0))
     }
   }
+}
+
+smacofMakePairsFromDelta <- function(delta, ties = 1) {
+  nobj <- nrow(delta)
+  mobj <- nobj * (nobj - 1) / 2
+  data <- matrix(0, mobj, 2)
+  k <- 1
+  for (j in 1:(nobj - 1)) {
+    for (i in (j + 1):nobj) {
+      data[k, 1] <- i
+      data[k, 2] <- j
+      k <- k + 1
+    }
+  }
+  r <- 1
+  fobj <- mobj * (mobj - 1) / 2
+  edta <- matrix(0, fobj, 6)
+  for (l in 1:(mobj - 1)) {
+    for (k in (l + 1):mobj) {
+      edta[r, 1:2] <- data[k, ]
+      edta[r, 3:4] <- data[l, ]
+      r <- r + 1
+    }
+  }
+  for (i in 1:fobj) {
+    d1 <- delta[edta[i,1], edta[i, 2]]
+    d2 <- delta[edta[i,3], edta[i, 4]]
+    if (d1 < d2) {
+      edta[i, 5] <- 1
+    }
+    if (d2 < d1) {
+      edta[i, 5] <- 2
+    }
+    if (d1 == d2) {
+      edta[i, 5] <- 0
+      edta[i, 6] <- ties
+    }
+  }
+  return(edta)
+}
+
+smacofOrderPairsFromDelta <- function(delta, ties = 1) {
+  n <- nrow(delta)
+  daux <- matrix(0, 0, 3)
+  for (j in 1:(n - 1)) {
+    for (i in (j + 1):n) {
+      daux <- rbind(daux, c(i, j, delta[i, j]))
+    }
+  }
+  odaux<- order(daux[, 3])
+  daux <- daux[odaux, ]
+  m <- nrow(daux) 
+  data <- matrix(0, 0, 5)
+  for (k in 1:(m - 1)) {
+    dij <- daux[k, 1:2]
+    dkl <- daux[k + 1, 1:2]
+    if (daux[k, 3] < daux[k + 1, 3]) {
+      data <- rbind(data, c(dij, dkl, 0))
+    }
+    if ((daux[k, 3] > daux[k + 1, 3])) {
+      data <- rbind(data, c(dkl, dij, 0))
+    }
+    if ((daux[k, 3] == daux[k + 1, 3])) {
+      data <- rbind(data, c(dkl, dij, ties))
+    }
+  }
+  return(data)
 }
