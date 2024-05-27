@@ -1,72 +1,73 @@
-smacofAdditiveConstant <- function(tvec, dvec, wvec, constant, bounds) {
+smacofAdditiveConstant <- function(delta, deltaup, deltalw, dmat, wmat, constant, bounds) {
   if (constant && !bounds) {
-    h <- smacofNoBoundsConstant(tvec,
-                                dvec,
-                                wvec,
-                                minDelta)
-    evec <- h$evec
+    h <- smacofNoBoundsConstant(delta,
+                                dmat,
+                                wmat)
+    dhat <- h$dhat
     addc <- h$addc
   }
   if (bounds && !constant) {
-    evec <- smacofBoundsNoConstant(deltaup, deltalw, dvec)
+    dhat <- smacofBoundsNoConstant(deltaup, deltalw, dmat)
     addc <- 0.0
   }
   if (bounds && constant) {
-    h <- smacofBoundsAndConstant(delta, dvec, deltaup, deltalw)
-    evec <- h$evec
+    h <- smacofBoundsAndConstant(delta, dmat, deltaup, deltalw)
+    dhat <- h$dhat
     addc <- h$addc
   }
-  return(list(evec = evec, addc = addc))
+  return(list(dhat = dhat, addc = addc))
 }
 
 
-smacofBoundsNoConstant <- function(deltaup, deltalw, dvec) {
-  evec <- ifelse(dvec >= deltaup, deltaup, dvec)
-  evec <- ifelse(evec <= deltalw, deltalw, evec)
-  return(evec)
+smacofBoundsNoConstant <- function(deltaup, deltalw, dmat) {
+  dhat <- ifelse(dmat >= deltaup, deltaup, dmat)
+  dhat <- ifelse(dhat <= deltalw, deltalw, dhat)
+  return(dhat)
 }
 
 smacofNoBoundsConstant <-
   function(delta,
-           dvec,
-           wvec,
-           haveweights,
-           wsum,
-           minDelta) {
-    addc <- ifelse(haveweights, sum(wvec * (delta - dvec)),
-                   sum(delta - dvec)) / wsum
+           dmat,
+           wmat) {
+    nobj <- nrow(delta)
+    minDelta <- min(delta[outer(1:nobj, 1:nobj, ">")])
+    wsum <- sum(wmat)
+    addc <- sum(delta - dmat) / wsum
     addc <- ifelse(addc <= minDelta, addc, minDelta)
-    evec <- delta - addc
-    return(list(addc = -addc, evec = evec))
+    dhat <- delta - addc
+    return(list(addc = -addc, dhat = dhat))
   }
 
 smacofBoundsAndConstant <-
-  function(delta, dvec, deltaup, deltalw) {
-    gc <- function(addc, dvec, delta, deltaup, deltalw) {
-      n <- length(delta)
+  function(delta, dmat, deltaup, deltalw) {
+    nobj <- nrow(delta)
+    gc <- function(addc, dmat, delta, deltaup, deltalw) {
+      nobj  <- nrow(delta)
       s <- 0.0
-      for (k in 1:n) {
-        if (dvec[k] < (deltalw[k] + addc)) {
-          s <- s + (dvec[k] - (deltalw[k] + addc)) ^ 2
+      for (j in 1:(nobj - 1)) {
+        for (i in (j + 1):nobj) {
+        if (dmat[i, j] < (deltalw[i, j] + addc)) {
+          s <- s + (dmat[i, j] - (deltalw[i, j] + addc)) ^ 2
         }
-        if (dvec[k] > (deltaup[k] + addc)) {
-          s <- s + (dvec[k] - (deltaup[k] + addc)) ^ 2
+        if (dmat[i, j] > (deltaup[i, j] + addc)) {
+          s <- s + (dmat[i, j] - (deltaup[i, j] + addc)) ^ 2
+        }
         }
       }
       return(s)
     }
-    left <- -min(deltaup)
-    right <- max(dvec - deltalw)
+    left <- -min(deltaup[outer(1:nobj, 1:nobj, ">")])
+    right <- max(dmat[outer(1:nobj, 1:nobj, ">")] - deltalw[outer(1:nobj, 1:nobj, ">")])
     addc <-
       optimize(
         gc,
         c(left, right),
-        dvec = dvec,
+        dmat = dmat,
         delta = delta,
         deltalw = deltalw,
         deltaup = deltaup
       )$minimum
-    evec <- ifelse(dvec >= deltaup + addc, deltaup + addc, dvec)
-    evec <- ifelse(evec <= deltalw + addc, deltalw + addc, evec)
-    return(list(addc = addc, evec = evec))
+    dhat <- ifelse(dmat >= deltaup + addc, deltaup + addc, dmat)
+    dhat <- ifelse(dhat <= deltalw + addc, deltalw + addc, dhat)
+    return(list(addc = addc, dhat = dhat))
   }

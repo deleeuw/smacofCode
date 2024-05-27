@@ -1,10 +1,5 @@
 smacofShepardPlot <-
   function(h,
-           addc = h$addc,
-           constant = h$constant,
-           bounds = h$bounds,
-           deltaup = h$deltaup,
-           deltalw = h$deltalw,
            main = "ShepardPlot",
            fitlines = 0,
            colline = "RED",
@@ -13,20 +8,29 @@ smacofShepardPlot <-
            lwd = 2,
            cex = 1,
            pch = 16) {
-    maxDelta <- max(h$delta)
-    minDelta <- min(h$delta)
-    odelta <- order(h$delta)
-    x <- h$delta[odelta]
-    y <- h$evec[odelta]
-    z <- h$dvec[odelta]
+    n <- h$nobj
+    addc <- h$addc
+    constant <- h$constant
+    bounds <- h$bounds
+    deltaup <- h$deltaup[outer(1:n, 1:n, ">")]
+    deltalw <- h$deltalw[outer(1:n, 1:n, ">")]
+    evec <- h$delta[outer(1:n, 1:n, ">")]
+    hvec <- h$dhat[outer(1:n, 1:n, ">")]
+    dvec <- h$dmat[outer(1:n, 1:n, ">")]
+    maxDelta <- max(evec)
+    minDelta <- min(evec)
+    odelta <- order(evec)
+    x <- evec[odelta]
+    y <- hvec[odelta]
+    z <- dvec[odelta]
     if (bounds) {
-    up <- h$deltaup[odelta]
-    lw <- h$deltalw[odelta]
-    } 
+      up <- deltaup[odelta]
+      lw <- deltalw[odelta]
+    }
     plot(
       rbind(cbind(x, z), cbind(x, y)),
       xlim = c(minDelta, maxDelta),
-      ylim = c(0, max(h$dvec)),
+      ylim = c(0, max(dvec)),
       xlab = "delta",
       ylab = "dhat and dist",
       main = main,
@@ -73,7 +77,7 @@ smacofConfigurationPlot <-
            col = "RED",
            cex = 1.5) {
     xnew <- matrix(h$xnew, h$nobj, h$ndim, byrow = TRUE)
-    if (h$havelabels == 3) {
+    if (is.null(labels)) {
       plot(
         xnew[, c(dim1, dim2)],
         xlab = paste("dimension", dim1),
@@ -104,8 +108,8 @@ smacofDistDhatPlot <- function(h,
                                cex = 1,
                                lwd = 2,
                                pch = 16) {
-  lw <- min(c(h$evec,h$dvec))
-  up <- max(c(h$evec,h$dvec))
+  lw <- min(c(h$evec, h$dvec))
+  up <- max(c(h$evec, h$dvec))
   par(pty = "s")
   plot(
     h$dvec,

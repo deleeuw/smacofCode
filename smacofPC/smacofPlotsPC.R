@@ -52,7 +52,6 @@ smacofDistDhatPlot <- function(h,
     type = "n"
   )
   abline(0, 1, col = colline, lwd = lwd)
-  wsum <- h$esum * h$wmat
   for (j in 1:(nobj - 1)) {
     for (i in (j + 1):nobj) {
       if (h$wsum[i, j] == 0) {

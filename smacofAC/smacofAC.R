@@ -1,6 +1,4 @@
 
-
-source("smacofConvertAC.R")
 source("smacofMakeInitialAC.R")
 source("smacofGuttmanLoop.R")
 source("smacofUtilities.R")
@@ -8,11 +6,11 @@ source("smacofPlotsAC.R")
 source("smacofTransformAC.R")
 
 smacofAC <- function(delta,
-                     ndim,
+                     ndim = 2,
                      wmat = NULL,
                      xold = NULL,
-                     bounds = 0,
-                     constant = 0,
+                     bounds = FALSE,
+                     constant = FALSE,
                      deltalw = NULL,
                      deltaup = NULL,
                      alpha = 2,
@@ -24,32 +22,29 @@ smacofAC <- function(delta,
                      verbose = TRUE,
                      kitmax = 5,
                      keps = 1e-10,
-                     kverbose = TRUE,
+                     kverbose = FALSE,
                      init = 1) {
   nobj <- nrow(delta)
   addc <- 0.0
-  tvec <- smacofDistToRMVector(as.dist(delta))
-  evec <- tvec + addc
-  emat <- delta + addc * (1 - diag(nobj))
+  dhat <- delta + addc * (1 - diag(nobj))
   deltaup <- 0.0
   deltalw <- 0.0
-  minDelta <- min(tvec)
-  maxDelta <- max(tvec)
+  minDelta <- min(delta[outer(1:nobj, 1:nobj, ">")])
+  maxDelta <- max(delta[outer(1:nobj, 1:nobj, ">")])
   rngDelta <- maxDelta - minDelta
   if (bounds == 2) {
-    deltaup <- tvec + rngDelta / alpha
-    deltalw <- tvec - rngDelta / alpha
+    deltaup <- delta + (rngDelta / alpha) * (1 - diag(nobj))
+    deltalw <- delta - (rngDelta / alpha) * (1 - diag(nobj))
   }
   if (bounds == 3) {
-    deltaup <- (1 + 1 / alpha) * tvec
-    deltalw <- (1 - 1 / alpha) * tvec
+    deltaup <- (1 + 1 / alpha) * delta
+    deltalw <- (1 - 1 / alpha) * delta
   }
   if (is.null(wmat)) {
     wmat <- 1 - diag(nobj)
   } else {
     wmat <- as.matrix(wmat)
   }
-  wvec <- smacofDistToRMVector(as.dist(wmat))
   vmat <- smacofMakeVmat(wmat)
   vinv <- solve(vmat + (1.0 / nobj)) - (1.0 / nobj)
   if (is.null(xold)) {
@@ -57,29 +52,27 @@ smacofAC <- function(delta,
       smacofMakeInitialConfiguration(delta, wmat, ndim, init)
   }
   dmat <- smacofDistances(xold)
-  dvec <- smacofDistToRMVector(dmat)
-  sold <- sum(wvec * (evec - dvec) ^ 2)
+  sold <- sum(wmat * (dhat - dmat) ^ 2) / 4.0
   itel <- 1
   repeat {
-    hg <-
+    xnew <-
       smacofGuttmanLoop(itel,
+                        wmat,
                         kitmax,
                         keps,
                         kverbose,
                         xold,
-                        wmat,
-                        wvec,
                         vinv,
-                        emat,
-                        evec,
-                        dmat,
-                        dvec)
-    xnew <- hg$xnew
-    dvec <- hg$dvec
-    dmat <- hg$dmat
-    smid <- sum(wvec * (evec - dvec) ^ 2)
-    
-    snew <- sum(wvec * (evec - dvec) ^ 2) / 4
+                        dhat,
+                        dmat)
+    dmat <- smacofDistances(xnew)
+    smid <- sum(wmat * (dhat - dmat) ^ 2) / 4.0
+    if (constant || bounds) {
+      ht <- smacofAdditiveConstant(delta, deltaup, deltalw, dmat, wmat, constant, bounds)
+      dhat <- ht$dhat
+      addc <- ht$addc
+    }
+    snew <- sum(wmat * (dhat - dmat) ^ 2) / 4.0
     if (verbose) {
       cat(
         "itel ",
@@ -112,26 +105,23 @@ smacofAC <- function(delta,
       break
     }
     sold <- snew
+    xold <- xnew
     itel <- itel + 1
   }
-  xnew <- hg$xnew
   h <- list(
     nobj = nobj,
     ndim = ndim,
     snew = snew,
     itel = itel,
     xnew = xnew,
-    evec = evec,
-    dvec = dvec,
-    wvec = wvec,
+    dmat = dmat,
+    dhat = dhat,
     delta = delta,
     addc = addc,
     bounds = bounds,
     constant = constant,
     deltaup = deltaup,
     deltalw = deltalw,
-    haveweights = haveweights,
-    havelabels = havelabels,
     labels = labels
   )
   return(h)
