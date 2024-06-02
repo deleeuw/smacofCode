@@ -40,6 +40,10 @@ smacofAC <- function(delta,
     deltaup <- (1 + 1 / alpha) * delta
     deltalw <- (1 - 1 / alpha) * delta
   }
+  if (bounds == 4) {
+    deltaup <- delta + 1 / alpha
+    deltalw <- delta - 1 / alpha
+  }
   if (is.null(wmat)) {
     wmat <- 1 - diag(nobj)
   } else {

@@ -1,15 +1,32 @@
-pick <- function(g, d) {
-  k <- length(g)
-  r <- which(g == 1)
-  p <- order(d[-r])
-  q <- (1:k)[-r][p]
-  u <- c(d[r],d[-r][p])
-  v <- pava(u)
-  z <- v[c(r, q)]
-  return(z)
+smacofMonotoneRegressionHO <- function(gind, dmat, wmat) {
+  nvar <- length(gind)
+  nobj <- nrow(gind[[1]])
+  dhat <- as.list(1:nvar)
+  for (j in 1:nvar) {
+    ncat <- ncol(gind[[j]])
+    dhat[[j]] <- matrix(0, nobj, ncat)
+    for (i in 1:nobj) {
+      d <- dmat[[j]][i, ]
+      r <- which(gind[[j]][i, ] == 1)
+      dhat[[j]][i, ] <- smacofTreeRegression(r, d)
+    }
+  }
+  return(dhat)
 }
 
-pava <-
+smacofTreeRegression <- function(r, d) {
+  ncat <- length(d)
+  mcat <- 1:ncat
+  dhat <- rep(0, ncat)
+  ordr <- order(d[-r])
+  indi <- mcat[-r][ordr]
+  daux <- c(d[r],d[-r][ordr])
+  daux <- smacofPoolAdjacentViolaters(daux)
+  dhat[c(r, indi)] <- daux
+  return(dhat)
+}
+
+smacofPoolAdjacentViolaters <-
   function(x,
            w = rep(1, length(x)),
            block = weighted.mean) {
@@ -30,10 +47,10 @@ pava <-
         n <- length(blockvalues)
         nn <- 1:n
         ii <- which(i + 1 != nn)
-        blocklist[i,] <- c(blocklist[i, 1], blocklist[i + 1, 2])
+        blocklist[i, ] <- c(blocklist[i, 1], blocklist[i + 1, 2])
         indi <- blocklist[i, 1]:blocklist[i + 1, 2]
         blockvalues[i] <- block(x[indi], w[indi])
-        blocklist <- blocklist[ii,]
+        blocklist <- blocklist[ii, ]
         if (length(ii) == 1)
           dim(blocklist) <- c(1, 2)
         blockvalues <- blockvalues[ii]
