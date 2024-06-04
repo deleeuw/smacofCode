@@ -17,7 +17,7 @@ smacofInitialHO <- function(gind, dmar, ndim, itmax, eps, verbose) {
     for (j in 1:nvar) {
       xnew <- xnew + gind[[j]] %*% yold[[j]]
     }
-    xnew <- qr.Q(qr(xnew))
+    xnew <- qr.Q(qr(smacofCenter(xnew)))
     ynew <- yold
     for (j in 1:nvar) {
       ynew[[j]] <- crossprod(gind[[j]], xnew) / pmax(1, dmar[[j]])

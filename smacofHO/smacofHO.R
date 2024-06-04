@@ -4,29 +4,28 @@ source("smacofMonotoneRegressionHO.R")
 source("smacofInitialHO.R")
 source("smacofGuttmanTransformHO.R")
 source("smacofSetUpHO.R")
+source("smacofCheckHO.R")
 
 # regression with wmat
-# matrices in partitioned form
 # missing data
 # normalizing constraints
 # centroid constraints
 # inner iterations
-# homals iterations
 # star plots
 # voronoi plots
 
 smacofHO <- function(data,
                      wmat = NULL,
                      ndim = 2,
-                     itmax = 5,
+                     itmax = 10000,
                      eps = 1e-10,
                      verbose = TRUE,
-                     hitmax = 10,
+                     hitmax = 50,
                      heps = 1e-10,
                      hverbose = FALSE,
-                     xitmax = 5,
-                     xeps = 1e-6,
-                     xverbose = TRUE,
+                     xitmax = 50,
+                     xeps = 1e-10,
+                     xverbose = FALSE,
                      kitmax = 5,
                      keps = 1e-10,
                      kverbose = FALSE, 
@@ -36,20 +35,20 @@ smacofHO <- function(data,
   gind <- smacofMakeIndicators(data)
   ncat <- smacofMakeNumberOfCategories(gind)
   dmar <- smacofMakeMarginals(gind)
+  if (is.null(wmat)) {
+    wmat <- smacofMakeWmat(nobj, ncat, gind)
+  }
   h <- smacofInitialHO(gind, dmar, ndim, hitmax, heps, hverbose)
   xold <- h$x
   yold <- h$y
   dmat <- smacofDistancesHO(xold, yold)
   dhat <- smacofMonotoneRegressionHO(gind, dmat, wmat)
-  if (is.null(wmat)) {
-    wmat <- smacofMakeWmat(nobj, ncat, gind)
-  }
   sold <- smacofStressHO(dmat, dhat, wmat)
   itel <- 1
   repeat {
     bmat <- smacofMakeBmatHO(dmat, dhat, wmat)
     zgut <- smacofGuttmanSolve(wmat, bmat, xold, yold)
-    zprj <- smacofProject(zgut, xold, yold, dhat, wmat, xitmax, xeps, xverbose)
+    zprj <- smacofGuttmanProject(zgut, dhat, wmat, xitmax, xeps, xverbose)
     xnew <- zprj$xnew
     ynew <- zprj$ynew
     dmat <- smacofDistancesHO(xnew, ynew)
@@ -69,23 +68,13 @@ smacofHO <- function(data,
         "\n"
       )
     }
-    if (itel == itmax) { #|| ((sold - snew) < eps)) {
+    if ((itel == itmax) || ((sold - snew) < eps)) {
       break
     }
     sold <- snew
     xold <- xnew
     yold <- ynew
     itel <- itel + 1
-  }
-  if (FALSE) {
-    for (j in 1:nvar) {
-    chk <- rep(FALSE, nobj)
-    for (i in 1:nobj) {
-      r <- which(gind[[j]][i, ]  == 1)
-      chk[i] <- dhat[[j]][i, r] == min(dhat[[j]][i, ])
-    }
-    print(chk)
-    }
   }
   h <- list(
     x = xnew,

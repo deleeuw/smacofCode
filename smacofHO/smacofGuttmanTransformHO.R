@@ -1,31 +1,33 @@
 
 
-
 smacofDistancesHO <- function(x, y) {
-  m <- length(y)
-  dist <- rep(list(NULL), m)
-  for (j in 1:m) {
-    dist[[j]] <-
-      sqrt(outer(rowSums(x ^ 2), rowSums(y[[j]] ^ 2), "+") - 2 * tcrossprod(x, y[[j]]))
+  nvar <- length(y)
+  dist <- as.list(1:nvar)
+  for (j in 1:nvar) {
+    dd <- outer(rowSums(x ^ 2), rowSums(y[[j]] ^ 2), "+")
+    - 2 * tcrossprod(x, y[[j]])
+    dist[[j]] <- sqrt(abs(dd))
   }
   return(dist)
 }
 
-smacofStressHO <- function(dist, dhat, wmat) {
-  m <- length(dist)
+smacofStressHO <- function(dmat, dhat, wmat) {
+  nvar <- length(dmat)
   s <- 0.0
-  for (j in 1:m) {
-    s <- s + sum(wmat[[j]] * (dist[[j]] - dhat[[j]]) ^ 2)
+  for (j in 1:nvar) {
+    s <- s + sum(wmat[[j]] * (dmat[[j]] - dhat[[j]]) ^ 2)
   }
   return(s)
 }
 
+
+
 smacofMakeBmatHO <- function(dmat, dhat, wmat) {
-  m <- length(dmat)
-  bmat <- rep(list(NULL), m)
-  for (j in 1:m) {
-    null <- ifelse(dmat[[j]] == 0, 1, 0)
-    bmat[[j]] <- wmat[[j]] * (1 - null) * (dhat[[j]] / (dmat[[j]] + null))
+  nvar <- length(dmat)
+  bmat <- as.list(1:nvar)
+  for (j in 1:nvar) {
+    frak <- ifelse(dmat[[j]] == 0, 0, dhat[[j]] / dmat[[j]])
+    bmat[[j]] <- wmat[[j]] * frak
   }
   return(bmat)
 }
@@ -47,15 +49,17 @@ smacofGuttmanSolve <- function(wmat, bmat, xold, yold) {
     rhsy <- vmat + crossprod(wmat[[j]], umat / rw)
     ynew <- sinv %*% rhsy
     xnew <- (umat + wmat[[j]] %*% ynew) / rw
+    ynew <- ynew - outer(rep(1, nc), apply(xnew, 2, mean))
+    xnew <- smacofCenter(xnew)
     znew[[j]] <- rbind(xnew, ynew)
   }
   return(znew)
 }
 
-smacofProject <- function(zgut, xold, yold, dhat, wmat, itmax, eps, verbose) {
+smacofGuttmanProject <- function(zgut, dhat, wmat, itmax, eps, verbose) {
   nvar <- length(zgut)
-  nobj <- nrow(xold)
-  ndim <- ncol(xold)
+  nobj <- nrow(dhat[[1]])
+  ndim <- ncol(zgut[[1]])
   offs <- 1:nobj
   wtot <- rep(0, nobj)
   wrow <- lapply(wmat, rowSums)
@@ -64,45 +68,67 @@ smacofProject <- function(zgut, xold, yold, dhat, wmat, itmax, eps, verbose) {
     x[-offs, ])
   xtil <- lapply(zgut, function(x)
     x[offs, ])
-  oold <- 0.0
+  yold <- ytil
+  xold <- matrix(0, nobj, ndim)
   for (j in 1:nvar) {
     wtot <- wtot + wrow[[j]]
-    oold <- oold + sum(wrow[[j]] * (xold - xtil[[j]]) ^ 2)
-    oold <- oold + sum(wcol[[j]] * (yold[[j]] - ytil[[j]]) ^ 2)
-    oold <- oold + 2 * sum((xold - xtil[[j]]) * (wmat[[j]] %*% (yold[[j]] - ytil[[j]])))
+    xold <- xold + wrow[[j]] * xtil[[j]]
   }
-  xnew <- matrix(0, nobj, ndim)
-  ynew <- yold
-  dmat <- smacofDistancesHO(xnew, ynew)
+  xold <- smacofCenter(xold / wtot)
+  oold <- 0.0
+  for (j in 1:nvar) {
+    xdif <- xold - xtil[[j]]
+    ydif <- yold[[j]] - ytil[[j]]
+    oold <- oold + sum(wrow[[j]] * xdif ^ 2)
+    oold <- oold + sum(wcol[[j]] * ydif ^ 2)
+    oold <- oold - 2 * sum(xdif * (wmat[[j]] %*% ydif))
+  }
+  dmat <- smacofDistancesHO(xold, yold)
   sold <- smacofStressHO(dmat, dhat, wmat)
   itel <- 1
   repeat {
+    ynew <- as.list(1:nvar)
     for (j in 1:nvar) {
-      ynew[[j]] <- ytil[[j]] - crossprod(wmat[[j]], xold - xtil[[j]]) / pmax(1, wcol[[j]])
-      xnew <- xnew + wrow[[j]] * xtil[[j]] + wmat[[j]] %*% (ynew[[j]] - ytil[[j]])
+      ycor <- crossprod(wmat[[j]], xold - xtil[[j]])
+      ynew[[j]] <- ytil[[j]] +  ycor / pmax(1, wcol[[j]])
     }
-    xnew <- xnew / wtot
+    xnew <- matrix(0, nobj, ndim)
+    for (j in 1:nvar) {
+      xcor <- wmat[[j]] %*% (ynew[[j]] - ytil[[j]])
+      xnew <- xnew + wrow[[j]] * xtil[[j]] + xcor
+    }
+    xnew <- smacofCenter(xnew / wtot)
     dmat <- smacofDistancesHO(xnew, ynew)
     snew <- smacofStressHO(dmat, dhat, wmat)
     onew <- 0.0
     for (j in 1:nvar) {
-      onew <- onew + sum(wrow[[j]] * (xnew - xtil[[j]]) ^ 2)
-      onew <- onew + sum(wcol[[j]] * (ynew[[j]] - ytil[[j]]) ^ 2)
-      onew <- onew + 2 * sum((xnew - xtil[[j]]) * (wmat[[j]] %*% (ynew[[j]] - ytil[[j]])))
+      xdif <- xnew - xtil[[j]]
+      ydif <- ynew[[j]] - ytil[[j]]
+      onew <- onew + sum(wrow[[j]] * xdif ^ 2)
+      onew <- onew + sum(wcol[[j]] * ydif ^ 2)
+      onew <- onew - 2 * sum(xdif * (wmat[[j]] %*% ydif))
     }
-    cat("itel ", formatC(itel, format = "d"),
-        "oold ", formatC(oold, digits = 10, format = "f"),
-        "onew ", formatC(onew, digits = 10, format = "f"),
-        "sold ", formatC(sold, digits = 10, format = "f"),
-        "snew ", formatC(snew, digits = 10, format = "f"),
-        "\n")
+    if (verbose) {
+      cat(
+        "xtel ",
+        formatC(itel, format = "d"),
+        "oold ",
+        formatC(oold, digits = 10, format = "f"),
+        "onew ",
+        formatC(onew, digits = 10, format = "f"),
+        "sold ",
+        formatC(sold, digits = 10, format = "f"),
+        "snew ",
+        formatC(snew, digits = 10, format = "f"),
+        "\n"
+      )
+    }
     if ((itel == itmax) || ((oold - onew) < eps)) {
       break
     }
     oold <- onew
     sold <- snew
     xold <- xnew
-    yold <- ynew
     itel <- itel + 1
   }
   return(list(xnew = xnew, ynew = ynew))
