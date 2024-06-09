@@ -1,5 +1,13 @@
 
-smacofInitialHO <- function(gind, dmar, ndim, itmax, eps, verbose) {
+
+smacofInitialHO <- function(data,
+                            gind,
+                            wmat,
+                            dmar,
+                            ndim,
+                            itmax,
+                            eps,
+                            verbose) {
   nvar <- length(gind)
   nobj <- nrow(gind[[1]])
   xold <- cbind(1, matrix(rnorm(nobj * ndim), nobj, ndim))
@@ -24,10 +32,15 @@ smacofInitialHO <- function(gind, dmar, ndim, itmax, eps, verbose) {
       snew <- snew + sum((xnew - gind[[j]] %*% ynew[[j]]) ^ 2)
     }
     if (verbose) {
-      cat("itel ", formatC(itel, format = "d"),
-          "sold ", formatC(sold, digits = 10, format = "f"),
-          "snew ", formatC(snew, digits = 10, format = "f"),
-          "\n")
+      cat(
+        "itel ",
+        formatC(itel, format = "d"),
+        "sold ",
+        formatC(sold, digits = 10, format = "f"),
+        "snew ",
+        formatC(snew, digits = 10, format = "f"),
+        "\n"
+      )
     }
     if ((itel == itmax) || ((sold - snew) < eps)) {
       break
@@ -37,5 +50,13 @@ smacofInitialHO <- function(gind, dmar, ndim, itmax, eps, verbose) {
     yold <- ynew
     sold <- snew
   }
-  return(list(x = xnew, y = ynew, s = snew, itel = itel))
+  h <- list(
+    data,
+    gind,
+    x = xnew,
+    y = ynew,
+    s = snew,
+    itel = itel
+  )
+  return(h)
 }

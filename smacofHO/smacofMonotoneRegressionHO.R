@@ -1,14 +1,22 @@
+
+
 smacofMonotoneRegressionHO <- function(gind, dmat, wmat) {
   nvar <- length(gind)
   nobj <- nrow(gind[[1]])
   dhat <- as.list(1:nvar)
   for (j in 1:nvar) {
     ncat <- ncol(gind[[j]])
+    dmaj <- dmat[[j]]
+    gmaj <- gind[[j]]
     dhat[[j]] <- matrix(0, nobj, ncat)
     for (i in 1:nobj) {
-      d <- dmat[[j]][i, ]
-      r <- which(gind[[j]][i, ] == 1)
-      dhat[[j]][i, ] <- smacofTreeRegression(r, d)
+      d <- dmaj[i, ]
+      r <- which(gmaj[i, ] == 1)
+      if (length(r) == 0) {
+        dhat[[j]][i, ] <- dmat[[j]][i, ]
+      } else {
+        dhat[[j]][i, ] <- smacofTreeRegression(r, d)
+      }
     }
   }
   return(dhat)
@@ -20,7 +28,7 @@ smacofTreeRegression <- function(r, d) {
   dhat <- rep(0, ncat)
   ordr <- order(d[-r])
   indi <- mcat[-r][ordr]
-  daux <- c(d[r],d[-r][ordr])
+  daux <- c(d[r], d[-r][ordr])
   daux <- smacofPoolAdjacentViolaters(daux)
   dhat[c(r, indi)] <- daux
   return(dhat)

@@ -1,4 +1,3 @@
-library(MASS)
 
 smacofExpandMatrix <- function(x) {
   nr <- nrow(x)
@@ -56,7 +55,7 @@ smacofCheckGuttmanSolve <- function(zgut, wmat, bmat, xold, yold) {
   zalt <- as.list(1:nvar)
   for (j in 1:nvar) {
     vmat <- smacofExpandMatrix(wmat[[j]])
-    vinv <- ginv(vmat)
+    vinv <- solve(vmat + (1 / nrow(vmat))) - (1 / nrow(vmat))
     bexp <- smacofExpandMatrix(bmat[[j]])
     zalt[[j]] <- vinv %*% bexp %*% rbind(xold, yold[[j]])
     cat(formatC(max(abs(zalt[[j]] - zgut[[j]])), digits = 10, format = "f"), "\n")
@@ -66,6 +65,7 @@ smacofCheckGuttmanSolve <- function(zgut, wmat, bmat, xold, yold) {
 smacofCheckGuttmanProject <- function(zgut, wmat) {
   nvar <- length(zgut)
   nobj <- nrow(wmat[[1]])
+  offs <- 1:nobj
   ndim <- ncol(zgut[[1]])
   wrow <- lapply(wmat, rowSums)
   wcol <- lapply(wmat, colSums)
@@ -80,8 +80,11 @@ smacofCheckGuttmanProject <- function(zgut, wmat) {
   xalt <- smacofCenter(linv %*% rhsi)
   yalt <- as.list(1:nvar)
   for (j in 1:nvar) {
-    ycor <- crossprod(wmat[[j]], xalt - zgut[[j]][1:nobj, ]) / wcol[[j]]
-    yalt[[j]] <- zgut[[j]][-(1:nobj), ] + ycor
+    wcol <- colSums(wmat[[j]])
+    xtil <- zgut[[j]][offs, ]
+    ytil <- zgut[[j]][-offs, ]
+    ycor <- crossprod(wmat[[j]], xalt - xtil)
+    yalt[[j]] <- ytil +  ycor / pmax(1, wcol)
   }
   return(list(xalt = xalt, yalt = yalt))
 }

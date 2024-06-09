@@ -1,18 +1,23 @@
-library(MASS)
-# library(terra)    # for voronoi
+
+
+suppressPackageStartupMessages(library(dismo, quietly = TRUE))
+
 source("smacofMonotoneRegressionHO.R")
 source("smacofInitialHO.R")
 source("smacofGuttmanTransformHO.R")
 source("smacofSetUpHO.R")
-source("smacofCheckHO.R")
+source("smacofPlotsHO.R")
 
-# regression with wmat
-# missing data
-# normalizing constraints
-# centroid constraints
-# inner iterations
-# star plots
-# voronoi plots
+# tree regression with wmat
+# inner iterations with guttmanloop
+# homals output for plots
+# homals with weights
+# category plot
+# ran"k one routine
+# centroid becomes constrained 0, 1, 2 (unrestricted, centroid, rank one)
+# xlabels becomes 0, 1, 2 (pch, values, labels)
+# overhaul plot routines
+# uniform variable naming
 
 smacofHO <- function(data,
                      wmat = NULL,
@@ -28,8 +33,9 @@ smacofHO <- function(data,
                      xverbose = FALSE,
                      kitmax = 5,
                      keps = 1e-10,
-                     kverbose = FALSE, 
-                     xnorm = 0) {
+                     kverbose = FALSE,
+                     constraints = FALSE,
+                     xnorm = FALSE) {
   nobj <- nrow(data)
   nvar <- ncol(data)
   gind <- smacofMakeIndicators(data)
@@ -38,9 +44,20 @@ smacofHO <- function(data,
   if (is.null(wmat)) {
     wmat <- smacofMakeWmat(nobj, ncat, gind)
   }
-  h <- smacofInitialHO(gind, dmar, ndim, hitmax, heps, hverbose)
-  xold <- h$x
-  yold <- h$y
+  if (constraints == 1) {
+    uvec <- as.list(1:nvar)
+    umat <- matrix(0, nobj, nobj)
+    for (j in 1:nvar) {
+      vmat <- smacofExpandMatrix(wmat[[j]])
+      uaux <- rbind(diag(nobj), t(gind[[j]]) / dmar[[j]])
+      umat <- umat + crossprod(uaux, vmat %*% uaux)
+      uvec[[j]] <- crossprod(uaux, vmat)
+    }
+    umat <- solve(umat + (1 / nobj)) - (1 / nobj)
+  }
+  hini <- smacofInitialHO(data, gind, wmat, dmar, ndim, hitmax, heps, hverbose)
+  xold <- hini$x
+  yold <- hini$y
   dmat <- smacofDistancesHO(xold, yold)
   dhat <- smacofMonotoneRegressionHO(gind, dmat, wmat)
   sold <- smacofStressHO(dmat, dhat, wmat)
@@ -48,9 +65,13 @@ smacofHO <- function(data,
   repeat {
     bmat <- smacofMakeBmatHO(dmat, dhat, wmat)
     zgut <- smacofGuttmanSolve(wmat, bmat, xold, yold)
-    zprj <- smacofGuttmanProject(zgut, dhat, wmat, xitmax, xeps, xverbose)
-    xnew <- zprj$xnew
-    ynew <- zprj$ynew
+    if (centroid) {
+      znew <- smacofGuttmanCentroid(zgut, gind, dmar, umat, uvec, xnorm)
+    } else {
+      znew <- smacofGuttmanUnrestricted(zgut, dhat, wmat, xitmax, xeps, xverbose, xnorm)
+     }
+    xnew <- znew$xnew
+    ynew <- znew$ynew
     dmat <- smacofDistancesHO(xnew, ynew)
     smid <- smacofStressHO(dmat, dhat, wmat)
     dhat <- smacofMonotoneRegressionHO(gind, dmat, wmat)
@@ -79,9 +100,12 @@ smacofHO <- function(data,
   h <- list(
     x = xnew,
     y = ynew,
+    hini = hini,
+    data = data,
     gind = gind,
     dmat = dmat,
     dhat = dhat,
+    wmat = wmat,
     stress = snew,
     itel = itel
   )

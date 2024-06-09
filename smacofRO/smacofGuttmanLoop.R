@@ -1,6 +1,4 @@
 
-
-
 smacofGuttmanLoop <-
   function(data,
            itel,
