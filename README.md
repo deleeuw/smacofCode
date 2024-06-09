@@ -18,7 +18,7 @@ R, then I'll figure out the optimization (using C).
 * smacofHO - Rectangular, non-metric, Homogeneity Analysis
 * smacofID - Individual Differences
 * smacofLN - Constrained, Linear Constraints
-* smacofPC - Non-metric, Paired Comparisions
+* smacofPC - Non-metric, Paired Comparisons
 * smacofQQ - Constrained, simplex, circumplex, uniqueness
 * smacofRO - Non-metric, Rank orders
 * smacofTR - Non-metric, Triads and Propellors
