@@ -1,9 +1,9 @@
 
-smacofMakeIndicators <- function(data) {
-  m <- ncol(data)
+smacofMakeIndicators <- function(thedata) {
+  m <- ncol(thedata)
   g <- rep(list(NULL), m)
   for (j in 1:m) {
-    h <- data[, j]
+    h <- thedata[, j]
     r <- is.na(h)
     f <- unique(h[!r])
     g[[j]] <- ifelse(outer(h, f, "=="), 1, 0)
@@ -34,5 +34,22 @@ smacofMakeWmat <- function(nobj, ncat, gind) {
   return(wmat)
 }
 
+smacofConvertCrossTable <- function(x) {
+  nr <- nrow(x)
+  nc <- ncol(x)
+  wvec <- c()
+  thedata <- c()
+  for (i in 1:nr) {
+    for (j in 1:nc) {
+        thedata <- rbind(thedata, c(i, j))
+        wvec <- c(wvec, x[i, j])
+    }
+  }
+  wmat <- as.list(1:2)
+  nmat <- length(wvec)
+  wmat[[1]] <- wvec * matrix(1, nmat, nr)
+  wmat[[2]] <- wvec * matrix(1, nmat, nc)
+  return(list(thedata = thedata, wmat = wmat))
+}
 
 

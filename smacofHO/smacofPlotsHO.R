@@ -1,22 +1,23 @@
 
 smacofJointPlotsHO <- function(h,
-                              jvar = NULL,
-                              dim1 = 1,
-                              dim2 = 2,
-                              xpch = 16,
-                              ypch = 8,
-                              xcol = "BLUE",
-                              ycol = "RED",
-                              xcex = 1,
-                              ycex = 1.5,
-                              voronoi = FALSE,
-                              stars = FALSE,
-                              clabels = TRUE,
-                              objects = FALSE,
-                              offset = .1,
-                              digs = 6,
-                              xlabels = FALSE,
-                              ylabels = FALSE) {
+                               jvar = NULL,
+                               dim1 = 1,
+                               dim2 = 2,
+                               xpch = 16,
+                               ypch = 8,
+                               xcol = "BLUE",
+                               ycol = "RED",
+                               xcex = 1,
+                               ycex = 1.5,
+                               voronoi = FALSE,
+                               stars = FALSE,
+                               objects = FALSE,
+                               offa = .1,
+                               digs = 6,
+                               clabels = 0,
+                               xlabels = 0,
+                               ylabels = 0,
+                               labels = NULL) {
   par(pty = "s")
   dimlab1 <- paste("dimension ", as.character(dim1))
   dimlab2 <- paste("dimension ", as.character(dim2))
@@ -24,7 +25,6 @@ smacofJointPlotsHO <- function(h,
   x <- h$x[, tdim]
   y <- lapply(h$y, function(x)
     x[, tdim])
-  g <- h$gind
   nvar <- length(y)
   nobj <- nrow(x)
   if (is.null(jvar)) {
@@ -34,15 +34,15 @@ smacofJointPlotsHO <- function(h,
   }
   for (j in jj) {
     if (ylabels) {
-      main <- names(h$data)[j]
+      main <- names(h$thedata)[j]
     } else {
       main <- paste("variable", formatC(j, format = "d"))
     }
-    if (voronoi) {
-      yy <- unique(signif(y[[j]], digs))
+    yy <- unique(signif(y[[j]], digs))
+    if (voronoi && (nrow(yy) > 1)) {
       omin <- min(x, yy)
       omax <- max(x, yy)
-      offa <- offset * (omax - omin)
+      offa <- offa * (omax - omin)
       spfr <- voronoi(yy, ext = c(omin - offa, omax + offa, omin - offa, omax + offa), )
       plot(
         spfr,
@@ -61,33 +61,50 @@ smacofJointPlotsHO <- function(h,
         ylab = dimlab2
       )
     }
-    if (is.null(clabels)) {
+    if (clabels) {
+      text(y[[j]],
+           as.character(unique(h$thedata[, j])),
+           col = ycol,
+           cex = ycex)
+    } else {
       points(y[[j]],
              pch = ypch,
              col = ycol,
              cex = ycex)
-    } else {
-      text(y[[j]],
-           as.character(unique(h$data[, j])),
-           col = ycol,
-           cex = ycex)
     }
     if (objects) {
-      if (xlabels) {
-        text(x,
-             as.character(h$data[, j]),
-             col = xcol,
-             cex = xcex)
+      if (!is.null(labels)) {
+        text(x, labels, col = xcol, cex = xcex)
       } else {
-        points(x,
-               pch = xpch,
+        if (xlabels == 0) {
+          points(x,
+                 pch = xpch,
+                 col = xcol,
+                 cex = xcex)
+        }
+        if (xlabels == 1) {
+          text(x,
+               as.character(1:nobj),
                col = xcol,
                cex = xcex)
+        }
+        if (xlabels == 2) {
+          text(x,
+               row.names(h$thedata),
+               col = xcol,
+               cex = xcex)
+        }
+        if (xlabels == 3) {
+          text(x,
+               as.character(h$thedata[, j]),
+               col = xcol,
+               cex = xcex)
+        }
       }
     }
     if (stars) {
       for (i in 1:nobj) {
-        l <- which(g[[j]][i, ] == 1)
+        l <- which(h$gind[[j]][i, ] == 1)
         if (length(l) == 0) {
           next
         }
@@ -98,50 +115,97 @@ smacofJointPlotsHO <- function(h,
   }
 }
 
-smacofObjectPlot <- function(h,
-                              dim1 = 1,
-                              dim2 = 2,
-                              pch = 16,
-                              col = "BLUE",
-                              cex = 1,
-                              main = "Object Plot",
-                              labels = 0) {
+smacofObjectsPlotHO <- function(h,
+                             dim1 = 1,
+                             dim2 = 2,
+                             pch = 16,
+                             col = "BLUE",
+                             cex = 1,
+                             main = "Object Plot",
+                             xlabels = 0,
+                             labels = NULL) {
   nobj <- nrow(h$x)
   par(pty = "s")
   dimlab1 <- paste("dimension ", as.character(dim1))
   dimlab2 <- paste("dimension ", as.character(dim2))
   tdim <- c(dim1, dim2)
-  x <- h$x[, tdim]
-  if (all(labels == 0)) {
-    plot(
-      x,
-      pch = pch,
-      col = col,
-      cex = cex,
-      main = main,
-      xlab = dimlab1,
-      ylab = dimlab2
-    )
+  x <- (h$x)[, tdim]
+  plot(
+    x,
+    type = "n",
+    main = main,
+    xlab = dimlab1,
+    ylab = dimlab2
+  )
+  if (!is.null(labels)) {
+    text(x, labels, col = col, cex = cex)
   } else {
-    if (all(labels == 1)) {
-      labels <- as.character(1:nobj)
-    } 
-    if (all(labels == 2)) {
-      labels <- row.names(h$data)
+    if (xlabels == 0) {
+      points(x,
+             pch = pch,
+             col = col,
+             cex = cex)
     }
-    plot(
-      x,
-      xlab = dimlab1,
-      ylab = dimlab2, 
-      main = main,
-      type = "n"
-    )
-    text(x, labels, pch = pch,
-         col = col,
-         cex = cex)
+    if (xlabels == 1) {
+      text(x, as.character(1:nobj), col = col, cex = cex)
+    }
+    if (xlabels == 2) {
+      text(x, row.names(h$thedata), col = col, cex = cex)
+    }
   }
 }
 
-smacofCategoriesPlot <- function() {
-  
+smacofCategoriesPlotHO <- function(h,
+                                 jvar = NULL,
+                                 dim1 = 1,
+                                 dim2 = 2,
+                                 pch = 8,
+                                 cex = 1,
+                                 col = "RED",
+                                 main = "Category Plot",
+                                 labels = FALSE,
+                                 offa = .1) {
+  nvar <- length(h$y)
+  par(pty = "s")
+  omax <- max(sapply(h$y, max))
+  omin <- max(sapply(h$y, min))
+  offa <- offa * (omax - omin)
+  dimlab1 <- paste("dimension ", as.character(dim1))
+  dimlab2 <- paste("dimension ", as.character(dim2))
+  tdim <- c(dim1, dim2)
+  if (is.null(jvar)) {
+    jj <- 1:nvar
+  } else {
+    jj <- jvar
+  }
+  plot(
+    h$y[[1]][, tdim],
+    xlim = c(omin - offa, omax + offa),
+    ylim = c(omin - offa, omax + offa),
+    xlab = dimlab1,
+    ylab = dimlab2,
+    main = main,
+    type = "n"
+  )
+  for (j in jj) {
+    yy <- h$y[[j]][, tdim]
+    ny <- nrow(yy)
+    if (!labels) {
+      points(yy,
+             pch = pch,
+             cex = cex,
+             col = col)
+    } else {
+      for (l in 1:ny) {
+        lb <- paste(j, ":", l, sep = "")
+        text(
+          x = yy[l, dim1],
+          y = yy[l, dim2],
+          lb,
+          cex = cex,
+          col = col
+        )
+      }
+    }
+  }
 }

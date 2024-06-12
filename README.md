@@ -7,7 +7,7 @@ want a circular configuration and your data are triads,
 you combine the triad *transformation module* (currently in smacofTR) 
 with the circular *Guttmnan module* (currently in smacofEL).
 
-At the moment I have given up on the goal of improving
+At the moment I have given up on the goal of optimizing
 memory use and speed -- first I create a codebase in
 R, then I'll figure out the optimization (using C).
 

@@ -66,6 +66,7 @@ smacofGuttmanUnrestricted <- function(zgut, dhat, wmat, itmax, eps, verbose, xno
     wtot <- wtot + wrow[[j]]
     xold <- xold + wrow[[j]] * xtil[[j]]
   }
+  wtot <- ifelse(wtot == 0, 1, wtot)
   xold <- xold / wtot
   oold <- 0.0
   for (j in 1:nvar) {
@@ -137,16 +138,15 @@ smacofGuttmanUnrestricted <- function(zgut, dhat, wmat, itmax, eps, verbose, xno
   return(list(xnew = xnew, ynew = ynew))
 }
 
-
-smacofGuttmanCentroid <- function(zgut, gind, dmar, umat, uvec, xnorm) {
-  nvar <- length(uvec)
+smacofGuttmanCentroid <- function(zgut, gind, dmar, umat, urhs, xnorm) {
+  nvar <- length(urhs)
   nobj <- nrow(zgut$xgut[[1]])
   ndim <- ncol(zgut$xgut[[1]])
   ynew <- as.list(1:nvar)
   xcen <- matrix(0, nobj, ndim)
   for (j in 1:nvar) {
     zbnd <- rbind(zgut$xgut[[j]], zgut$ygut[[j]])
-    xcen <- xcen + uvec[[j]] %*% zbnd
+    xcen <- xcen + urhs[[j]] %*% zbnd
   }
   if (xnorm) {
     crsx <- crossprod(xcen, umat %*% xcen)
@@ -165,57 +165,157 @@ smacofGuttmanCentroid <- function(zgut, gind, dmar, umat, uvec, xnorm) {
   return(list(xnew = xnew, ynew = ynew))
 }
 
+smacofGuttmanSingle <- function(zgut, dhat, wmat, itmax, eps, verbose, xnorm) {
+  nvar <- length(wmat)
+  nobj <- nrow(dhat[[1]])
+  ndim <- ncol(zgut$xgut[[1]])
+  wtot <- rep(0, nobj)
+  wrow <- lapply(wmat, rowSums)
+  wcol <- lapply(wmat, colSums)
+  ytil <- zgut$ygut
+  xtil <- zgut$xgut
+  yold <- ytil
+  xold <- matrix(0, nobj, ndim)
+  for (j in 1:nvar) {
+    wtot <- wtot + wrow[[j]]
+    xold <- xold + wrow[[j]] * xtil[[j]]
+  }
+  wtot <- ifelse(wtot == 0, 1, wtot)
+  xold <- xold / wtot
+  oold <- 0.0
+  for (j in 1:nvar) {
+    xdif <- xold - xtil[[j]]
+    ydif <- yold[[j]] - ytil[[j]]
+    oold <- oold + sum(wrow[[j]] * (xdif ^ 2))
+    oold <- oold + sum(wcol[[j]] * (ydif ^ 2))
+    oold <- oold - 2 * sum(xdif * (wmat[[j]] %*% ydif))
+  }
+  dmat <- smacofDistancesHO(xold, yold)
+  sold <- smacofStressHO(dmat, dhat, wmat)
+  itel <- 1
+  repeat {
+    xnew <- matrix(0, nobj, ndim)
+    for (j in 1:nvar) {
+      xcor <- wmat[[j]] %*% (yold[[j]] - ytil[[j]])
+      xnew <- xnew + wrow[[j]] * xtil[[j]] + xcor
+    }
+    if (xnorm) {
+      crsx <- crossprod(xnew, xnew / wtot)
+      lbdx <- eigen(crsx)
+      kbdx <- lbdx$vectors
+      ebdx <- abs(lbdx$values)
+      ebdx <- ifelse(ebdx == 0, 0, 1 / sqrt(ebdx))
+      lagx <- tcrossprod(kbdx %*% diag(ebdx), kbdx)
+      xnew <- (xnew %*% lagx) / wtot
+    } else {
+      xnew <- xnew / wtot
+    }
+    ynew <- as.list(1:nvar)
+    for (j in 1:nvar) {
+      mcor <- wcol[[j]] * ytil[[j]] + crossprod(wmat[[j]], xnew - xtil[[j]])
+      ccor <- crossprod(mcor, mcor / wcol[[j]])
+      acor <- eigen(ccor)$vectors[, 1]
+      ycor <- drop(mcor %*% acor) / wcol[[j]]
+      ynew[[j]] <- outer(ycor, acor)
+    }
+    dmat <- smacofDistancesHO(xnew, ynew)
+    snew <- smacofStressHO(dmat, dhat, wmat)
+    onew <- 0.0
+    for (j in 1:nvar) {
+      xdif <- xnew - xtil[[j]]
+      ydif <- ynew[[j]] - ytil[[j]]
+      onew <- onew + sum(wrow[[j]] * (xdif ^ 2))
+      onew <- onew + sum(wcol[[j]] * (ydif ^ 2))
+      onew <- onew - 2 * sum(xdif * (wmat[[j]] %*% ydif))
+    }
+    if (verbose) {
+      cat(
+        "xtel ",
+        formatC(itel, format = "d"),
+        "oold ",
+        formatC(oold, digits = 10, format = "f"),
+        "onew ",
+        formatC(onew, digits = 10, format = "f"),
+        "sold ",
+        formatC(sold, digits = 10, format = "f"),
+        "snew ",
+        formatC(snew, digits = 10, format = "f"),
+        "\n"
+      )
+    }
+    if ((itel == itmax) || ((oold - onew) < eps)) {
+      break
+    }
+    oold <- onew
+    sold <- snew
+    xold <- xnew
+    yold <- ynew
+    itel <- itel + 1
+  }
+  return(list(xnew = xnew, ynew = ynew))
+}
+
+
 smacofGuttmanLoopHO <-
-  function(data,
+  function(gind,
+           dmar,
            itel,
            kitmax,
            keps,
            kverbose,
+           xitmax,
+           xeps,
+           xverbose,
            xold,
+           yold,
            wmat,
-           wvec,
-           vinv,
-           emat,
-           evec,
+           dhat,
            dmat,
-           dvec) {
+           umat,
+           urhs,
+           xnorm,
+           yform) {
     ktel <- 1
-    told <- sum(wvec * (evec - dvec) ^ 2)
+    sold <- smacofStressHO(dmat, dhat, wmat)
     repeat {
-      xnew <- smacofGuttmanTransform(emat, dmat, wmat, vinv, xold)
-      dmat <- smacofDistances(xnew)
-      dvec <- smacofMakeDistanceVector(data, dmat)
-      etas <- sum(wvec * (dvec ^ 2))
-      etaa <- 1 / sqrt(etas)
-      dvec <- dvec * etaa
-      dmat <- dmat * etaa
-      xnew <- xnew * etaa
-      tnew <- sum(wvec * (evec - dvec) ^ 2)
+      bmat <- smacofMakeBmatHO(dmat, dhat, wmat)
+      zgut <- smacofGuttmanSolve(wmat, bmat, xold, yold)
+      if (yform == 0) {
+        znew <- smacofGuttmanUnrestricted(zgut, dhat, wmat, xitmax, xeps, xverbose, xnorm)
+      }
+      if (yform == 1) {
+        znew <- smacofGuttmanCentroid(zgut, gind, dmar, umat, urhs, xnorm)
+      }
+      if (yform == 2) {
+        znew <- smacofGuttmanSingle(zgut, dhat, wmat, xitmax, xeps, xverbose, xnorm)
+      }
+      xnew <- znew$xnew
+      ynew <- znew$ynew
+      dmat <- smacofDistancesHO(xnew, ynew)
+      snew <- smacofStressHO(dmat, dhat, wmat)
       if (kverbose) {
         cat(
           "itel ",
           formatC(itel, width = 3, format = "d"),
-          "gtel ",
+          "ktel ",
           formatC(ktel, width = 3, format = "d"),
-          "told ",
-          formatC(told, digits = 10, format = "f"),
-          "tnew ",
-          formatC(tnew, digits = 10, format = "f"),
+          "sold ",
+          formatC(sold, digits = 10, format = "f"),
+          "snew ",
+          formatC(snew, digits = 10, format = "f"),
           "\n"
         )
       }
-      if ((ktel == kitmax) || ((told - tnew) < keps)) {
+      if ((ktel == kitmax) || ((sold - snew) < keps)) {
         break
       }
       ktel <- ktel + 1
-      told <- tnew
+      sold <- snew
       xold <- xnew
+      yold <- ynew
     }
     return(list(xnew = xnew,
-                dvec = dvec,
-                dmat = dmat))
+                ynew = ynew,
+                dmat = dmat,
+                snew = snew))
   }
-
-smacofGuttmanSingle <- function() {
-  
-}
