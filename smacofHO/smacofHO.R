@@ -1,6 +1,8 @@
 
 
 # voronoi exceptions
+# homals non-iterative via Burt (or svd with p)
+# noin-iterative update for unrestricted via Burt
 
 suppressPackageStartupMessages(library(dismo, quietly = TRUE))
 
@@ -17,9 +19,6 @@ smacofHO <- function(thedata,
                      itmax = 10000,
                      eps = 1e-10,
                      verbose = TRUE,
-                     hitmax = 10,
-                     heps = 1e-6,
-                     hverbose = FALSE,
                      xitmax = 50,
                      xeps = 1e-10,
                      xverbose = FALSE,
@@ -47,7 +46,7 @@ smacofHO <- function(thedata,
     }
     umat <- solve(umat + (1 / nobj)) - (1 / nobj)
   }
-  hini <- smacofHomogeneityHO(thedata, wmat, ndim, hitmax, heps, hverbose)
+  hini <- smacofHomogeneityHO(thedata, wmat, ndim)
   xold <- hini$x
   yold <- hini$y
   dmat <- smacofDistancesHO(xold, yold)
