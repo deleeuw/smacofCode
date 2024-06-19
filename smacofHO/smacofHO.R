@@ -1,10 +1,11 @@
 
-
-# voronoi exceptions
-# homals non-iterative via Burt (or svd with p)
-# noin-iterative update for unrestricted via Burt
+# initial if yform = 2
+# yform and xnorm as vectors with length nvar(0, 1, 2)
+# majorization for centroid 
+# prediction table
 
 suppressPackageStartupMessages(library(dismo, quietly = TRUE))
+suppressPackageStartupMessages(library(mgcv, quietly = TRUE))
 
 source("smacofMonotoneRegressionHO.R")
 source("smacofHomogeneityHO.R")
@@ -32,10 +33,13 @@ smacofHO <- function(thedata,
   gind <- smacofMakeIndicators(thedata)
   ncat <- smacofMakeNumberOfCategories(gind)
   dmar <- smacofMakeMarginals(gind)
+  if (length(yform) == 1) {
+    yform <- rep(yform, nvar)
+  }
   if (is.null(wmat)) {
     wmat <- smacofMakeWmat(nobj, ncat, gind)
   }
-  if (yform == 1) {
+  if (yform[1] == 1) {
     urhs <- as.list(1:nvar)
     umat <- matrix(0, nobj, nobj)
     for (j in 1:nvar) {
@@ -49,6 +53,12 @@ smacofHO <- function(thedata,
   hini <- smacofHomogeneityHO(thedata, wmat, ndim)
   xold <- hini$x
   yold <- hini$y
+  for (j in 1:nvar) {
+    if (yform[j] == 2) {
+      syol <- svd(yold)
+      yold[[j]] <- outer(syol$u[, 1], syol$v[, 1]) * syol$d[1]
+    }
+  }
   dmat <- smacofDistancesHO(xold, yold)
   dhat <- smacofMonotoneRegressionHO(gind, dmat, wmat)
   sold <- smacofStressHO(dmat, dhat, wmat)

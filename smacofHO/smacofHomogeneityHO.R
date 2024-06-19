@@ -1,4 +1,3 @@
-library(mgcv) # for slanczos
 
 smacofHomogeneityHO <- function(thedata,
                                 wmat = NULL,

@@ -255,7 +255,6 @@ smacofGuttmanSingle <- function(zgut, dhat, wmat, itmax, eps, verbose, xnorm) {
   return(list(xnew = xnew, ynew = ynew))
 }
 
-
 smacofGuttmanLoopHO <-
   function(gind,
            dmar,
@@ -281,13 +280,13 @@ smacofGuttmanLoopHO <-
       bmat <- smacofMakeBmatHO(dmat, dhat, wmat)
       zgut <- smacofGuttmanSolve(wmat, bmat, xold, yold)
       if (yform == 0) {
-        znew <- smacofGuttmanUnrestricted(zgut, dhat, wmat, xitmax, xeps, xverbose, xnorm)
+        znew <- smacofGuttmanUnrestrictedCategories(zgut, dhat, wmat, xitmax, xeps, xverbose, xnorm)
       }
       if (yform == 1) {
-        znew <- smacofGuttmanCentroid(zgut, gind, dmar, umat, urhs, xnorm)
+        znew <- smacofGuttmanCentroidCategories(zgut, gind, dmar, umat, urhs, xnorm)
       }
       if (yform == 2) {
-        znew <- smacofGuttmanSingle(zgut, dhat, wmat, xitmax, xeps, xverbose, xnorm)
+        znew <- smacofGuttmanSingleCategories(zgut, dhat, wmat, xitmax, xeps, xverbose, xnorm)
       }
       xnew <- znew$xnew
       ynew <- znew$ynew
