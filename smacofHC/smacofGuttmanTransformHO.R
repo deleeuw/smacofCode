@@ -116,6 +116,8 @@ smacofNormObjectScores <- function(pmat, wtot, xnorm) {
   return(xnew)
 }
 
+# only for yform = 0 or yform = 1
+
 smacofUpdateCategoryScores <- function(zgut, wmat, xold, yform, ncat) {
   nvar <- length(wmat)
   wcol <- lapply(wmat, colSums)
@@ -124,17 +126,16 @@ smacofUpdateCategoryScores <- function(zgut, wmat, xold, yform, ncat) {
   xtil <- zgut$xgut
   ynew <- lapply(1:nvar, function(j) matrix(0, ncat[j], ndim))
   for (j in 1:nvar) {
-     if (yform[j] == ndim) {
+     if (yform[j] == 0) {
       ycor <- crossprod(wmat[[j]], xold - xtil[[j]])
       ynew[[j]] <- ytil[[j]] +  ycor / pmax(1, wcol[[j]])
-    } else {
-      pdim <- yform[[j]]
-      mcor <- wcol[[j]] * ytil[[j]] + 
-        crossprod(wmat[[j]], xold - xtil[[j]])
+    }
+    if (yform[j] == 1) {
+      mcor <- wcol[[j]] * ytil[[j]] + crossprod(wmat[[j]], xold - xtil[[j]])
       ccor <- crossprod(mcor, mcor / wcol[[j]])
-      acor <- eigen(ccor)$vectors[, 1:pdim]
+      acor <- eigen(ccor)$vectors[, 1]
       ycor <- drop(mcor %*% acor) / wcol[[j]]
-      ynew[[j]] <- tcrossprod(ycor, acor)
+      ynew[[j]] <- outer(ycor, acor)
     }
   }
   return(ynew)
@@ -158,4 +159,13 @@ smacofUpdateObjectScores <- function(zgut, ynew, wmat, ndim, xnorm) {
   } else {
     xnew <- smacofNormObjectScores(pmat, wtot, xnorm)
   } 
+}
+
+
+smacofUpdateCentroidOption <- function(zgut, wmat, xold, yform, ncat) {
+  # loop over yform = 2
+  # use zgut to compute Q
+  # compute PXold
+  
+  
 }

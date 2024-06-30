@@ -51,7 +51,7 @@ smacofJointPlotsHO <- function(h,
         ylab = dimlab2,
         main = main,
         cex = ycex,
-        pch = NULL
+        pch = ypch
      )
     } else {
       plot(

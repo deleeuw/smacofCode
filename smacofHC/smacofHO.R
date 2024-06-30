@@ -1,5 +1,9 @@
 
-suppressPackageStartupMessages(library(deldir, quietly = TRUE))
+# yform and xnorm as vectors with length nvar (0, 1, 2)
+# majorization for centroid 
+# prediction table
+
+suppressPackageStartupMessages(library(dismo, quietly = TRUE))
 suppressPackageStartupMessages(library(mgcv, quietly = TRUE))
 
 source("smacofMonotoneRegressionHO.R")
@@ -21,7 +25,7 @@ smacofHO <- function(thedata,
                      kitmax = 5,
                      keps = 1e-6,
                      kverbose = FALSE,
-                     yform = ndim,
+                     yform = 0,
                      xnorm = 0) {
   nobj <- nrow(thedata)
   nvar <- ncol(thedata)
@@ -31,7 +35,6 @@ smacofHO <- function(thedata,
   if (length(yform) == 1) {
     yform <- rep(yform, nvar)
   }
-  yform <- pmin(ncat, yform)
   if (is.null(wmat)) {
     wmat <- smacofMakeWmat(nobj, ncat, gind)
   }
@@ -42,8 +45,11 @@ smacofHO <- function(thedata,
   }
   xold <- hini$xini
   yold <- hini$yini
-  if (any(yform < ndim)) {
+  if (any(yform == 1)) {
     yold <- smacofInitCategorySingle(yold, yform)
+  }
+  if (any(yform == 2)) {
+    eval <- smacofInitCategoryCentroid(gind, dmar, wmat, yform)
   }
   dmat <- smacofDistancesHO(xold, yold)
   dhat <- smacofMonotoneRegressionHO(gind, dmat, wmat)

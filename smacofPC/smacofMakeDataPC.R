@@ -162,3 +162,26 @@ smacofOrderPairsFromDelta <- function(delta, ties = 1) {
   }
   return(data)
 }
+
+smacofMakePairsFromIndicators <- function(g) {
+  nvar <- length(g)
+  nobj <- nrow(g[[1]])
+  pars <- matrix(0, 0, 4)
+  svar <- nobj
+  for (j in 1:nvar) {
+    ncat <- ncol(g[[j]])
+    for (i in 1:nobj) {
+      r <- which(g[[j]][i, ] == 1)
+      if (length(r) > 0) {
+        for (l in 1:ncat) {
+          if (l == r) {
+            next
+          }
+          pars <- rbind(pars, c(i, svar + r, i, svar + l))
+        }
+      }
+    }
+    svar <- svar + ncat
+  }
+  return(pars)
+}
