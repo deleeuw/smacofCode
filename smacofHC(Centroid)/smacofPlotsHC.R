@@ -1,5 +1,5 @@
 
-smacofJointPlotsHO <- function(h,
+smacofJointPlotsHC <- function(h,
                                jvar = NULL,
                                dim1 = 1,
                                dim2 = 2,
@@ -116,7 +116,7 @@ smacofJointPlotsHO <- function(h,
   }
 }
 
-smacofObjectsPlotHO <- function(h,
+smacofObjectsPlotHC <- function(h,
                              dim1 = 1,
                              dim2 = 2,
                              pch = 16,
@@ -156,7 +156,7 @@ smacofObjectsPlotHO <- function(h,
   }
 }
 
-smacofCategoriesPlotHO <- function(h,
+smacofCategoriesPlotHC <- function(h,
                                  jvar = NULL,
                                  dim1 = 1,
                                  dim2 = 2,
@@ -169,7 +169,7 @@ smacofCategoriesPlotHO <- function(h,
   nvar <- length(h$y)
   par(pty = "s")
   omax <- max(sapply(h$y, max))
-  omin <- max(sapply(h$y, min))
+  omin <- min(sapply(h$y, min))
   offa <- offa * (omax - omin)
   dimlab1 <- paste("dimension ", as.character(dim1))
   dimlab2 <- paste("dimension ", as.character(dim2))

@@ -1,5 +1,5 @@
 
-smacofHomogeneityHC <- function(thedata,
+smacofHomogeneity <- function(thedata,
                                 wmat = NULL,
                                 ndim = 2,
                                 jitmax = 100,

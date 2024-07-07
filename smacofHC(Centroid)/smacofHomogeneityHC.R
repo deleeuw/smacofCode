@@ -1,11 +1,10 @@
 
-smacofHomogeneityHC <- function(thedata,
+smacofHomogeneityHC <- function(mydata,
                                 wmat = NULL,
                                 ndim = 2,
-                                jitmax = 100,
-                                jeps = 1e-10,
-                                jverbose = FALSE) {
-  gind <- smacofMakeIndicators(thedata)
+                                itpar = list(itmax = 100, eps = 1e-10, verbose = TRUE)
+                                ) {
+  gind <- smacofMakeIndicators(mydata)
   nvar <- length(gind)
   nobj <- nrow(gind[[1]])
   ncat <- smacofMakeNumberOfCategories(gind)
@@ -41,13 +40,13 @@ smacofHomogeneityHC <- function(thedata,
     }
     xnew <- smacofCenter(xnew, wtot)
     xnew <- smacofProcrustus(xnew, wtot)
-    if (jverbose) {
+    if (itpar$verbose) {
       cat("jtel ", formatC(jtel, format = "d"),
           "sold ", formatC(sold, digits = 10, format = "f"),
           "snew ", formatC(snew, digits = 10, format = "f"),
           "\n")
     }
-    if ((jtel == jitmax) || ((sold - snew) < jeps)) {
+    if ((jtel == itpar$itmax) || ((sold - snew) < itpar$eps)) {
       break
     }
     sold <- snew

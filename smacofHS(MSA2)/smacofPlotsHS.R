@@ -51,7 +51,7 @@ smacofJointPlotsHO <- function(h,
         ylab = dimlab2,
         main = main,
         cex = ycex,
-        pch = NULL
+        pch = ypch
      )
     } else {
       plot(
@@ -208,5 +208,42 @@ smacofCategoriesPlotHO <- function(h,
         )
       }
     }
+  }
+}
+
+smacofObjectsCirclePlot <- function(h) {
+  nvar <- length(h$y)
+  ncat <- sapply(h$y, nrow)
+  gind <- h$gind
+  miny <- min(sapply(h$y, min)) - h$rho
+  maxy <- max(sapply(h$y, max)) + h$rho
+  par(pty = "s")
+  for (j in 1:nvar) {
+    plot(h$y[[j]], main = paste("variable ", j), type = "n", 
+         xlim = c(miny, maxy), ylim = c(miny, maxy),
+         xlab = "dimension 1", ylab = "dimension 2")
+    text(h$y[[j]], as.character(1:ncat[[j]]), cex = 1.5, col = "RED")
+    text(h$x, as.character(gind[[j]] %*% 1:ncat[[j]]),
+         col = "BLUE")
+    for (l in 1:ncat[j]) {
+      smacofAddCircle(h$y[[j]][l, ], h$rho)
+    }
+  }
+}
+
+smacofShepardPlotHS <- function(h) {
+  nvar <- length(h$gind)
+  rho <- h$rho
+  for (j in 1:nvar) {
+    dmat <- h$dmat[[j]]
+    dhat <- h$dhat[[j]]
+    gind <- h$gind[[j]]
+    x <- c(dmat[as.vector(gind == 1)], dmat[as.vector(gind == 0)])
+    y <- c(dhat[as.vector(gind == 1)], dhat[as.vector(gind == 0)])
+    plot(x, y, main = paste("variable", j), 
+         xlab = "distance", ylab = "disparity", col = "RED", pch = 16, cex = 1.5)
+    abline(v = rho)
+    abline(h = rho)
+    abline(0, 1)
   }
 }

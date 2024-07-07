@@ -1,5 +1,4 @@
 
-
 smacofMonotoneRegressionHC <- function(gind, dmat, wmat) {
   nvar <- length(gind)
   nobj <- nrow(gind[[1]])
@@ -108,17 +107,21 @@ smacofBinaryMonotoneRegression <- function(gind, wmat, dmat) {
   dmax <- max(sapply(dmat, max))
   inte <- c(dmin, dmax)
   func <- function(rho, gind, wmat, dmat) {
-    loss <- 0.0
+    snew <- 0.0
     for (j in 1:nvar) {
       dhaj <- pmin(dmat[[j]], rho) * gind[[j]] + pmax(dmat[[j]], rho)
-      loss <- loss + sum(wmat[[j]] * (dmat[[j]] - dhaj) ^ 2)
+      snew <- snew + sum(wmat[[j]] * (dmat[[j]] - dhaj) ^ 2)
     }
     return(loss)
   }
-  rho <- optimize(func, inte, gind = gind, wmat = wmat, dmat = dmat)$minimum
+  hrho <- optimize(func, inte, gind = gind, wmat = wmat, dmat = dmat)
+  rho <- hrho$minimum
+  snew <- hrho$objective
   dhat <- lapply(1:nvar, function(j) matrix(0, nobj, ncol(dmat[[j]])))
   for (j in 1:nvar) {
-    dhat[[j]] <- pmin(dmat[[j]], rho) * gind[[j]] + pmax(dmat[[j]], rho)
+    uppe <- pmax(dmat[[j]], rho)
+    lowe <- pmin(dmat[[j]], rho)
+    dhat[[j]] <- (lowe - uppe) * gind[[j]] + uppe
   }
-  return(list(rho = rho, dhat = dhat))
+  return(list(rho = rho, dhat = dhat, snew = snew))
 }

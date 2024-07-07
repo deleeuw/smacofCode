@@ -1,4 +1,4 @@
-smacofDistancesHC <- function(x, y) {
+smacofDistances <- function(x, y) {
   nvar <- length(y)
   dmat <- as.list(1:nvar)
   rx <- rowSums(x ^ 2)
@@ -9,7 +9,7 @@ smacofDistancesHC <- function(x, y) {
   return(dmat)
 }
 
-smacofStressHC <- function(dmat, dhat, wmat) {
+smacofStress <- function(dmat, dhat, wmat) {
   nvar <- length(dmat)
   s <- 0.0
   for (j in 1:nvar) {
@@ -18,7 +18,7 @@ smacofStressHC <- function(dmat, dhat, wmat) {
   return(s)
 }
 
-smacofMakeBmatHC <- function(dmat, dhat, wmat) {
+smacofMakeBmat <- function(dmat, dhat, wmat) {
   nvar <- length(dmat)
   bmat <- as.list(1:nvar)
   for (j in 1:nvar) {
@@ -184,4 +184,11 @@ smacofMaxEigen <- function(hmat, wmat, wrow, wcol, wtot, jitmax, jeps, jverbose)
     lold <- lnew
   }
   return(lnew)
+}
+
+smacofAddCircle <- function(center, radius) {
+  s <- seq(-2 * pi, 2 * pi, length = 100)
+  x <- center[1] + sin(s) * radius
+  y <- center[2] + cos(s) * radius
+  lines(x, y)
 }

@@ -1,15 +1,14 @@
 
-suppressPackageStartupMessages(library(dismo, quietly = TRUE))
+suppressPackageStartupMessages(library(deldir, quietly = TRUE))
 suppressPackageStartupMessages(library(mgcv, quietly = TRUE))
 
-source("smacofMonotoneRegressionHC.R")
-source("smacofHomogeneityHC.R")
-source("smacofInitCategoryHC.R")
-source("smacofGuttmanTransformHC.R")
-source("smacofUtilitiesHC.R")
-source("smacofPlotsHC.R")
+source("smacofMonotoneRegressionHS.R")
+source("smacofHomogeneity.R")
+source("smacofGuttmanTransformHS.R")
+source("smacofUtilities.R")
+source("smacofPlotsHS.R")
 
-smacofHC <- function(thedata,
+smacofHS <- function(thedata,
                      wmat = NULL,
                      ndim = 2,
                      itmax = 10000,
@@ -22,14 +21,19 @@ smacofHC <- function(thedata,
                      jeps = 1e-10,
                      jverbose = FALSE,
                      kitmax = 5,
-                     keps = 1e-6,
+                     keps = 1e-10,
                      kverbose = FALSE,
-                     xnorm = 0) {
+                     xnorm = TRUE,
+                     yform = ndim) {
   nobj <- nrow(thedata)
   nvar <- ncol(thedata)
   gind <- smacofMakeIndicators(thedata)
   ncat <- smacofMakeNumberOfCategories(gind)
   dmar <- smacofMakeMarginals(gind)
+  if (length(yform) == 1) {
+    yform <- rep(yform, nvar)
+  }
+  yform <- pmin(ncat, yform)
   if (is.null(wmat)) {
     wmat <- smacofMakeWmat(nobj, ncat, gind)
   }
@@ -41,17 +45,21 @@ smacofHC <- function(thedata,
     hj <- wrow[, j] * gind[[j]]
     hmat[[j]] <- t(hj) / pmax(1, colSums(hj))
   }
-  hini <- smacofHomogeneityHC(thedata, wmat, ndim, jitmax, jeps, jverbose)
-  labd <- smacofMaxEigen(hmat, wmat, wrow, wcol, wtot, jitmax, jeps, jverbose)
-  # just renorm x and recompute y
-  xold <- hini$x
+  hini <- smacofHomogeneity(thedata, wmat, ndim, jitmax, jeps, jverbose)
   yold <- hini$y
-  dmat <- smacofDistancesHC(xold, yold)
-  dhat <- smacofMonotoneRegressionHC(gind, dmat, wmat)
-  sold <- smacofStressHC(dmat, dhat, wmat)
+  xold <- smacofProcrustus(hini$x, wtot)
+  for (j in 1:nvar) {
+    hj <- wrow[, j] * gind[[j]]
+    hmat <- t(hj) / pmax(1, colSums(hj))
+    yold[[j]] <- hmat %*% xold
+  }
+  dmat <- smacofDistances(xold, yold)
+  binr <- smacofBinaryMonotoneRegression(gind, wmat, dmat)
+  dhat <- binr$dhat
+  sold <- binr$snew
   itel <- 1
   repeat {
-    zgul <- smacofGuttmanLoopHC(
+    zgul <- smacofGuttmanLoopHS(
       gind,
       dmar,
       itel,
@@ -64,21 +72,21 @@ smacofHC <- function(thedata,
       xold,
       yold,
       wmat,
-      hmat,
-      wrow,
-      wcol,
       dhat,
       dmat,
       ndim,
       ncat,
-      xnorm
+      xnorm,
+      yform
     )
     xnew <- zgul$xnew
     ynew <- zgul$ynew
     dmat <- zgul$dmat
     smid <- zgul$snew
-    dhat <- smacofMonotoneRegressionHC(gind, dmat, wmat)
-    snew <- smacofStressHC(dmat, dhat, wmat)
+    binr <- smacofBinaryMonotoneRegression(gind, wmat, dmat) 
+    dhat <- binr$dhat
+    snew <- binr$snew
+    rho <- binr$rho
     if (verbose) {
       cat(
         "itel ",
@@ -109,6 +117,7 @@ smacofHC <- function(thedata,
     dhat = dhat,
     wmat = wmat,
     stress = snew,
+    rho = rho,
     itel = itel
   )
   return(h)

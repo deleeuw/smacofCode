@@ -1,4 +1,6 @@
 
+# fold in stress formula 2
+
 source("smacofMakeInitialRO.R")
 source("smacofMonotoneRegressionRO.R")
 source("smacofPlotsRO.R")

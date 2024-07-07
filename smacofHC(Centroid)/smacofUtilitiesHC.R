@@ -147,7 +147,7 @@ smacofPredictionTable <- function(h) {
   return(tab)
 }
 
-smacofPmatMultiply <- function(hmat, wmat, wrow, wcol, x) {
+smacofPmatMultiply <- function(hmat, wmat, wtot, wrow, wcol, x) {
   nvar <- length(wmat)
   y <- matrix(0, nrow(x), ncol(x))
   for (j in 1:nvar) {
@@ -160,23 +160,23 @@ smacofPmatMultiply <- function(hmat, wmat, wrow, wcol, x) {
   return(y)
 }
 
-smacofMaxEigen <- function(hmat, wmat, wrow, wcol, wtot, jitmax, jeps, jverbose) {
+smacofMaxEigen <- function(hmat, wmat, wtot, wrow, wcol, itpar) {
   xold <- as.matrix(rnorm(length(wtot)))
   xold <- xold / sqrt(sum(wtot * (xold  ^ 2)))
   lold <- 0.0
   jtel <- 1
   repeat {
-    xnew <- smacofPmatMultiply(hmat, wmat, wrow, wcol, xold)
+    xnew <- smacofPmatMultiply(hmat, wmat, wtot, wrow, wcol, xold)
     xnew <- xnew / wtot
     lnew <- sqrt(sum(wtot * (xnew  ^ 2)))
     xnew <- xnew  / lnew
-    if (jverbose) {
+    if (itpar$verbose) {
       cat("jtel ", formatC(jtel, format = "d"),
           "lold ", formatC(lold, digits = 10, format = "f"),
           "lnew ", formatC(lnew, digits = 10, format = "f"),
           "\n")
     }
-    if ((jtel == jitmax) || ((lnew - lold) < jeps)) {
+    if ((jtel == itpar$itmax) || ((lnew - lold) < itpar$eps)) {
       break
     }
     jtel <- jtel + 1

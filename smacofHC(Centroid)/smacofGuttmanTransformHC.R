@@ -2,8 +2,10 @@
 smacofGuttmanTransform <- function(wmat, bmat, xold, yold, ndim, ncat) {
   nvar <- length(wmat)
   nobj <- nrow(wmat[[1]])
-  ygut <- lapply(1:nvar, function(j) matrix(0, ncat[j], ndim))
-  xgut <- lapply(1:nvar, function(j) matrix(0, nobj, ndim))
+  ygut <- lapply(1:nvar, function(j)
+    matrix(0, ncat[j], ndim))
+  xgut <- lapply(1:nvar, function(j)
+    matrix(0, nobj, ndim))
   for (j in 1:nvar) {
     rw <- rowSums(wmat[[j]])
     rw <- ifelse(rw == 0, 1, rw)
@@ -25,23 +27,23 @@ smacofGuttmanTransform <- function(wmat, bmat, xold, yold, ndim, ncat) {
 smacofGuttmanLoopHC <-
   function(gind,
            dmar,
+           mydata,
            itel,
-           kitmax,
-           keps,
-           kverbose,
-           xitmax,
-           xeps,
-           xverbose,
+           kitpar,
+           xitpar,
+           jitpar,
            xold,
            yold,
            wmat,
            hmat,
-           wrow,
+           wtot,
+           wrow, 
            wcol,
+           ncat,
            dhat,
            dmat,
            ndim,
-           ncat,
+           labd,
            xnorm) {
     ktel <- 1
     sold <- smacofStressHC(dmat, dhat, wmat)
@@ -50,12 +52,23 @@ smacofGuttmanLoopHC <-
       zgut <- smacofGuttmanTransform(wmat, bmat, xold, yold, ndim, ncat)
       xtel <- 1
       repeat {
-        cnew <- smacofGuttmanCentroid(zgut, labd, hmat, wmat, wrow, wcol)
+        cnew <- smacofCentroidConstraints(gind,
+                                         dmar,
+                                         zgut,
+                                         labd,
+                                         hmat,
+                                         wmat,
+                                         wrow,
+                                         wcol,
+                                         wtot,
+                                         jitpar, 
+                                         xold,
+                                         xnorm)
         xnew <- cnew$xnew
         ynew <- cnew$ynew
         dmat <- smacofDistancesHC(xnew, ynew)
         snew <- smacofStressHC(dmat, dhat, wmat)
-        if (xverbose) {
+        if (xitpar$verbose) {
           cat(
             "itel ",
             formatC(itel, width = 3, format = "d"),
@@ -70,14 +83,14 @@ smacofGuttmanLoopHC <-
             "\n"
           )
         }
-        if ((xtel == xitmax) || ((sold - snew) < xeps)) {
+        if ((xtel == xitpar$itmax) || ((sold - snew) < xitpar$eps)) {
           break
         }
         xold <- xnew
         sold <- snew
         xtel <- xtel + 1
       }
-      if (kverbose) {
+      if (kitpar$verbose) {
         cat(
           "itel ",
           formatC(itel, width = 3, format = "d"),
@@ -90,7 +103,7 @@ smacofGuttmanLoopHC <-
           "\n"
         )
       }
-      if ((ktel == kitmax) || ((sold - snew) < keps)) {
+      if ((ktel == kitpar$itmax) || ((sold - snew) < kitpar$eps)) {
         break
       }
       ktel <- ktel + 1
@@ -98,28 +111,26 @@ smacofGuttmanLoopHC <-
       xold <- xnew
       yold <- ynew
     }
-    return(list(xnew = xnew,
-                ynew = ynew,
-                dmat = dmat,
-                snew = snew))
+    return(list(
+      xnew = xnew,
+      ynew = ynew,
+      dmat = dmat,
+      snew = snew
+    ))
   }
 
-smacofNormObjectScores <- function(pmat, wtot, xnorm) {
-  crsx <- crossprod(pmat, pmat / wtot)
-  if (xnorm == 1) {
-    xnew <- (pmat / wtot) / sqrt(sum(diag(crsx)))
-  } else {
-    lbdx <- eigen(crsx)
-    kbdx <- lbdx$vectors
-    ebdx <- abs(lbdx$values)
-    ebdx <- ifelse(ebdx == 0, 0, 1 / sqrt(ebdx))
-    lagx <- tcrossprod(kbdx %*% diag(ebdx), kbdx)
-    xnew <- (pmat %*% lagx) / wtot
-  }
-  return(xnew)
-}
-
-smacofGuttmanCentroid <- function(zgut, labd, hmat, wmat, wrow, wcol) {
+smacofCentroidConstraints <- function(gind,
+                                     dmar,
+                                     zgut,
+                                     labd,
+                                     hmat,
+                                     wmat,
+                                     wrow,
+                                     wcol,
+                                     wtot,
+                                     jitpar, 
+                                     xold,
+                                     xnorm) {
   nobj <- nrow(zgut$xgut[[1]])
   ndim <- ncol(zgut$xgut[[1]])
   nvar <- length(wmat)
@@ -133,20 +144,26 @@ smacofGuttmanCentroid <- function(zgut, labd, hmat, wmat, wrow, wcol) {
     qmat <- qmat - crossprod(hmat[[j]], crossprod(wmat[[j]], xtil))
     qmat <- qmat - wmat[[j]] %*% ytil
   }
-  qmat <- qmat - smacofPmatMultiply(hmat, wmat, wrow, wcol, x)
-  if (xnorm) {
-    crsx <- crossprod(xcen, umat %*% xcen)
-    lbdx <- eigen(crsx)
-    kbdx <- lbdx$vectors
-    ebdx <- abs(lbdx$values)
-    ebdx <- ifelse(ebdx == 0, 0, 1 / sqrt(ebdx))
-    lagx <- tcrossprod(kbdx %*% diag(ebdx), kbdx)
-    xnew <- umat %*% xcen %*% lagx
-  } else {
-    xnew <- umat %*% xcen
-  }
-  for (j in 1:nvar) {
-    ynew[[j]] <- crossprod(gind[[j]], xnew) / dmar[[j]]
+  jtel <- 1
+  repeat {
+    pmax <- smacofPmatMultiply(hmat, wmat, wtot, wrow, wcol, xold)
+    if (xnorm) {
+      pnrm <- (qmat - pmax) + labd * wtot * xold
+      xnew <- smacofProcrustus(pnrm, wtot)
+    } else {
+      xnew <- xold + (qmat - pmax) / (labd * wtot)
+    }
+    for (j in 1:nvar) {
+      ynew[[j]] <- crossprod(gind[[j]], xnew) / dmar[[j]]
+    }
+    if (jitpar$verbose) {
+      
+    }
+    if ((jtel == jitpar$itmax)) {
+      break
+    }
+    xold <- xnew
+    jtel <- jtel + 1
   }
   return(list(xnew = xnew, ynew = ynew))
 }

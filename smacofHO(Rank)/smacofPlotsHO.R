@@ -210,3 +210,52 @@ smacofCategoriesPlotHO <- function(h,
     }
   }
 }
+
+smacofSeparationPlot <- function(h, nvals = 20) {
+  smacofSeparate <- function(z, x, y) {
+    dx <- min(apply(x, 1, function(d)
+      sqrt(sum((
+        z - d
+      ) ^ 2))))
+    dy <- min(apply(y, 1, function(d)
+      sqrt(sum((
+        z - d
+      ) ^ 2))))
+    return(dx / (dx + dy))
+  }
+  smacofGrid <- function(x, y, nvals = nvals, xmax, xmin, l) {
+    s <- seq(-3, 3, length = nvals)
+    z <- matrix(0, nvals, nvals)
+    for (i in 1:nvals) {
+      for (j in 1:nvals) {
+        z[i, j] <- smacofSeparate(c(s[i], s[j]), x, y)
+      }
+    }
+    contour(
+      s,
+      s,
+      z,
+      zlim = c(0, 1),
+      levels = .5,
+      add = TRUE
+    )
+  }
+  nvar <- length(h$gind)
+  xmat <- h$x
+  xmax <- max(xmat)
+  xmin <- min(xmat)
+  for (j in 1:nvar) {
+    ncat <- ncol(h$gind[[j]])
+    rcol <- rainbow(ncat)
+    for (l in 1:ncat) {
+      plot(0, xlim = c(xmin, xmax), ylim = c(xmin, xmax),
+           main = paste("variable", j, "category", l))
+      g <- as.logical(h$gind[[j]][, l])
+      x <- as.matrix(xmat[g, ], byrow = TRUE)
+      y <- as.matrix(xmat[!g, ], byrow = TRUE)
+      text(x, as.character(1:ncat), col = rcol[j])
+      smacofGrid(x, y, nvals = nvals, xmax, xmin, l)
+    }
+  }
+}
+

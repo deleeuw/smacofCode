@@ -1,33 +1,25 @@
 
-suppressPackageStartupMessages(library(dismo, quietly = TRUE))
+suppressPackageStartupMessages(library(deldir, quietly = TRUE))
 suppressPackageStartupMessages(library(mgcv, quietly = TRUE))
 
 source("smacofMonotoneRegressionHC.R")
 source("smacofHomogeneityHC.R")
-source("smacofInitCategoryHC.R")
 source("smacofGuttmanTransformHC.R")
 source("smacofUtilitiesHC.R")
 source("smacofPlotsHC.R")
 
-smacofHC <- function(thedata,
+smacofHC <- function(mydata,
                      wmat = NULL,
                      ndim = 2,
-                     itmax = 10000,
-                     eps = 1e-10,
-                     verbose = TRUE,
-                     xitmax = 50,
-                     xeps = 1e-10,
-                     xverbose = FALSE,
-                     jitmax = 100,
-                     jeps = 1e-10,
-                     jverbose = FALSE,
-                     kitmax = 5,
-                     keps = 1e-6,
-                     kverbose = FALSE,
-                     xnorm = 0) {
-  nobj <- nrow(thedata)
-  nvar <- ncol(thedata)
-  gind <- smacofMakeIndicators(thedata)
+                     xnorm = TRUE,
+                     itpar = list(itmax = 10000, eps = 1e-10, verbose = TRUE),
+                     xitpar = list(itmax = 50, eps = 1e-10, verbose = FALSE),
+                     jitpar = list(itmax = 100, eps = 1e-10, verbose = FALSE),
+                     kitpar = list(itmax = 5, eps = 1e-6, verbose = FALSE)
+                     ) {
+  gind <- smacofMakeIndicators(mydata)
+  nobj <- nrow(mydata)
+  nvar <- ncol(mydata)
   ncat <- smacofMakeNumberOfCategories(gind)
   dmar <- smacofMakeMarginals(gind)
   if (is.null(wmat)) {
@@ -35,17 +27,19 @@ smacofHC <- function(thedata,
   }
   wrow <- sapply(wmat, rowSums)
   wcol <- sapply(wmat, colSums)
-  wtot <- rowSums(wrow)
+  wtot <- rowSums(sapply(wmat, rowSums))
   hmat <- lapply(1:nvar, function(j) matrix(0, ncat[j], nobj))
   for (j in 1:nvar) {
     hj <- wrow[, j] * gind[[j]]
     hmat[[j]] <- t(hj) / pmax(1, colSums(hj))
   }
-  hini <- smacofHomogeneityHC(thedata, wmat, ndim, jitmax, jeps, jverbose)
-  labd <- smacofMaxEigen(hmat, wmat, wrow, wcol, wtot, jitmax, jeps, jverbose)
-  # just renorm x and recompute y
-  xold <- hini$x
+  hini <- smacofHomogeneityHC(mydata, wmat, ndim, itpar = jitpar)
+  labd <- smacofMaxEigen(hmat, wmat, wtot, wrow, wcol, itpar = jitpar)
   yold <- hini$y
+  xold <- smacofProcrustus(hini$x, wtot)
+  for (j in 1:nvar) {
+    yold[[j]] <- hmat[[j]] %*% xold
+  }
   dmat <- smacofDistancesHC(xold, yold)
   dhat <- smacofMonotoneRegressionHC(gind, dmat, wmat)
   sold <- smacofStressHC(dmat, dhat, wmat)
@@ -54,32 +48,34 @@ smacofHC <- function(thedata,
     zgul <- smacofGuttmanLoopHC(
       gind,
       dmar,
+      mydata,
       itel,
-      kitmax,
-      keps,
-      kverbose,
-      xitmax,
-      xeps,
-      xverbose,
+      kitpar,
+      xitpar,
+      jitpar,
       xold,
       yold,
       wmat,
       hmat,
-      wrow,
+      wtot,
+      wrow, 
       wcol,
+      ncat,
       dhat,
       dmat,
       ndim,
-      ncat,
+      labd,
       xnorm
     )
     xnew <- zgul$xnew
     ynew <- zgul$ynew
+    # dist
+    # smid
     dmat <- zgul$dmat
     smid <- zgul$snew
     dhat <- smacofMonotoneRegressionHC(gind, dmat, wmat)
     snew <- smacofStressHC(dmat, dhat, wmat)
-    if (verbose) {
+    if (itpar$verbose) {
       cat(
         "itel ",
         formatC(itel, format = "d"),
@@ -92,7 +88,7 @@ smacofHC <- function(thedata,
         "\n"
       )
     }
-    if ((itel == itmax) || ((sold - snew) < eps)) {
+    if ((itel == itpar$itmax) || ((sold - snew) < itpar$eps)) {
       break
     }
     sold <- snew
@@ -101,14 +97,14 @@ smacofHC <- function(thedata,
     itel <- itel + 1
   }
   h <- list(
-    x = xnew,
-    y = ynew,
-    thedata = thedata,
+    xnew = xnew,
+    ynew = ynew,
+    mydata = mydata,
     gind = gind,
     dmat = dmat,
     dhat = dhat,
     wmat = wmat,
-    stress = snew,
+    snew = snew,
     itel = itel
   )
   return(h)

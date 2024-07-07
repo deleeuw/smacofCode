@@ -22,7 +22,7 @@ smacofGuttmanTransform <- function(wmat, bmat, xold, yold, ndim, ncat) {
   return(list(xgut = xgut, ygut = ygut))
 }
 
-smacofGuttmanLoopHO <-
+smacofGuttmanLoopHS <-
   function(gind,
            dmar,
            itel,
@@ -42,16 +42,16 @@ smacofGuttmanLoopHO <-
            xnorm,
            yform) {
     ktel <- 1
-    sold <- smacofStressHO(dmat, dhat, wmat)
+    sold <- smacofStress(dmat, dhat, wmat)
     repeat {
-      bmat <- smacofMakeBmatHO(dmat, dhat, wmat)
+      bmat <- smacofMakeBmat(dmat, dhat, wmat)
       zgut <- smacofGuttmanTransform(wmat, bmat, xold, yold, ndim, ncat)
       xtel <- 1
       repeat {
         ynew <- smacofUpdateCategoryScores(zgut, wmat, xold, yform, ncat)
         xnew <- smacofUpdateObjectScores(zgut, ynew, wmat, ndim, xnorm)
-        dmat <- smacofDistancesHO(xnew, ynew)
-        snew <- smacofStressHO(dmat, dhat, wmat)
+        dmat <- smacofDistances(xnew, ynew)
+        snew <- smacofStress(dmat, dhat, wmat)
         if (xverbose) {
           cat(
             "itel ",
@@ -101,23 +101,6 @@ smacofGuttmanLoopHO <-
                 snew = snew))
   }
 
-smacofNormObjectScores <- function(pmat, wtot, xnorm) {
-  crsx <- crossprod(pmat, pmat / wtot)
-  if (xnorm == 1) {
-    xnew <- (pmat / wtot) / sqrt(sum(diag(crsx)))
-  } else {
-    lbdx <- eigen(crsx)
-    kbdx <- lbdx$vectors
-    ebdx <- abs(lbdx$values)
-    ebdx <- ifelse(ebdx == 0, 0, 1 / sqrt(ebdx))
-    lagx <- tcrossprod(kbdx %*% diag(ebdx), kbdx)
-    xnew <- (pmat %*% lagx) / wtot
-  }
-  return(xnew)
-}
-
-# only for yform = 0 or yform = 1
-
 smacofUpdateCategoryScores <- function(zgut, wmat, xold, yform, ncat) {
   nvar <- length(wmat)
   wcol <- lapply(wmat, colSums)
@@ -126,16 +109,17 @@ smacofUpdateCategoryScores <- function(zgut, wmat, xold, yform, ncat) {
   xtil <- zgut$xgut
   ynew <- lapply(1:nvar, function(j) matrix(0, ncat[j], ndim))
   for (j in 1:nvar) {
-     if (yform[j] == 0) {
+     if (yform[j] == ndim) {
       ycor <- crossprod(wmat[[j]], xold - xtil[[j]])
       ynew[[j]] <- ytil[[j]] +  ycor / pmax(1, wcol[[j]])
-    }
-    if (yform[j] == 1) {
-      mcor <- wcol[[j]] * ytil[[j]] + crossprod(wmat[[j]], xold - xtil[[j]])
+    } else {
+      pdim <- yform[[j]]
+      mcor <- wcol[[j]] * ytil[[j]] + 
+        crossprod(wmat[[j]], xold - xtil[[j]])
       ccor <- crossprod(mcor, mcor / wcol[[j]])
-      acor <- eigen(ccor)$vectors[, 1]
+      acor <- eigen(ccor)$vectors[, 1:pdim]
       ycor <- drop(mcor %*% acor) / wcol[[j]]
-      ynew[[j]] <- outer(ycor, acor)
+      ynew[[j]] <- tcrossprod(ycor, acor)
     }
   }
   return(ynew)
@@ -157,15 +141,6 @@ smacofUpdateObjectScores <- function(zgut, ynew, wmat, ndim, xnorm) {
   if (xnorm == 0) {
     xnew <- pmat / wtot
   } else {
-    xnew <- smacofNormObjectScores(pmat, wtot, xnorm)
+    xnew <- smacofProcrustus(pmat, wtot)
   } 
-}
-
-
-smacofUpdateCentroidOption <- function(zgut, wmat, xold, yform, ncat) {
-  # loop over yform = 2
-  # use zgut to compute Q
-  # compute PXold
-  
-  
 }

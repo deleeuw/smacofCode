@@ -1,5 +1,6 @@
 
 
+
 smacofGuttmanLoop <-
   function(itel,
            wsum,
@@ -18,7 +19,6 @@ smacofGuttmanLoop <-
       dmat <- smacofDistances(xnew)
       etas <- sum(wsum * (dmat ^ 2))
       etaa <- sqrt(etas)
-      xnew <- xnew / etaa
       dmat <- dmat / etaa
       tnew <- sum(wsum * (dhat - dmat) ^ 2)
       if (kverbose) {
