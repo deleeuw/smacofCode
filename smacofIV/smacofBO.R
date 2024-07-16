@@ -1,20 +1,18 @@
 
-source("smacofMakeInitialAC.R")
-source("smacofGuttmanLoop.R")
-source("smacofUtilities.R")
-source("smacofPlotsAC.R")
-source("smacofTransformAC.R")
+source("smacofMakeInitialBO.R")
+source("smacofGuttmanLoopBO.R")
+source("smacofUtilitiesBO.R")
+source("smacofPlotsBO.R")
+source("smacofTransformBO.R")
 
-smacofAC <- function(delta,
+smacofBO <- function(thedata,
                      ndim = 2,
                      wmat = NULL,
                      xold = NULL,
-                     bounds = FALSE,
+                     bounds = 1,
                      constant = FALSE,
-                     deltalw = NULL,
-                     deltaup = NULL,
                      alpha = 2,
-                     labels = row.names(delta),
+                     labels = NULL,
                      width = 15,
                      precision = 10,
                      itmax = 1000,
@@ -23,18 +21,26 @@ smacofAC <- function(delta,
                      kitmax = 5,
                      keps = 1e-10,
                      kverbose = FALSE,
+                     jitmax = 5,
+                     jeps = 1e-10,
+                     jverbose = FALSE,
                      init = 1) {
-  nobj <- nrow(delta)
+  indi <- thedata[, 1:2]
+  delta <- thedata[, 3]
+  wgth <- thedata[, 4]
+  nobj <- max(indi)
   addc <- 0.0
-  dhat <- delta + addc * (1 - diag(nobj))
-  deltaup <- 0.0
-  deltalw <- 0.0
-  minDelta <- min(delta[outer(1:nobj, 1:nobj, ">")])
-  maxDelta <- max(delta[outer(1:nobj, 1:nobj, ">")])
+  dhat <- delta + addc
+  if (bounds == 1) {
+    deltalw <- thedata[, 5]
+    deltaup <- thedata[, 6]
+  }
+  minDelta <- min(delta)
+  maxDelta <- max(delta)
   rngDelta <- maxDelta - minDelta
   if (bounds == 2) {
-    deltaup <- delta + (rngDelta / alpha) * (1 - diag(nobj))
-    deltalw <- delta - (rngDelta / alpha) * (1 - diag(nobj))
+    deltaup <- delta + (rngDelta / alpha)
+    deltalw <- delta - (rngDelta / alpha)
   }
   if (bounds == 3) {
     deltaup <- (1 + 1 / alpha) * delta
@@ -44,39 +50,36 @@ smacofAC <- function(delta,
     deltaup <- delta + 1 / alpha
     deltalw <- delta - 1 / alpha
   }
-  if (is.null(wmat)) {
-    wmat <- 1 - diag(nobj)
-  } else {
-    wmat <- as.matrix(wmat)
-  }
-  vmat <- smacofMakeVmat(wmat)
-  vinv <- solve(vmat + (1.0 / nobj)) - (1.0 / nobj)
   if (is.null(xold)) {
-    xold <-
-      smacofMakeInitialConfiguration(delta, wmat, ndim, init)
+    if (init == 1) {
+      xold <- smacofTorgersonBO(thedata, ndim, jitmax, jeps, jverbose)
+    } else {
+      xold <- smacofCenterBO(matrix(rnorm(nobj * ndim), nobj, ndim))
+    }
   }
-  dmat <- smacofDistances(xold)
-  sold <- sum(wmat * (dhat - dmat) ^ 2) / 4.0
+  dmat <- smacofDistancesBO(thedata, xold)
+  sold <- sum(wgth * (dhat - dmat) ^ 2)
   itel <- 1
   repeat {
     xnew <-
-      smacofGuttmanLoop(itel,
-                        wmat,
-                        kitmax,
-                        keps,
-                        kverbose,
-                        xold,
-                        vinv,
-                        dhat,
-                        dmat)
-    dmat <- smacofDistances(xnew)
-    smid <- sum(wmat * (dhat - dmat) ^ 2) / 4.0
-    if (constant || bounds) {
-      ht <- smacofAdditiveConstant(delta, deltaup, deltalw, dmat, wmat, constant, bounds)
-      dhat <- ht$dhat
-      addc <- ht$addc
-    }
-    snew <- sum(wmat * (dhat - dmat) ^ 2) / 4.0
+      smacofGuttmanLoopBO(thedata,
+                          dhat,
+                          dmat,
+                          wgth,
+                          kitmax,
+                          keps,
+                          kverbose,
+                          jitmax,
+                          jeps,
+                          jverbose,
+                          xold,
+                          itel)
+    dmat <- smacofDistancesBO(thedata, xnew)
+    smid <- sum(wgth * (dhat - dmat) ^ 2) / 4.0
+    ht <- smacofTransformBO(deltaup, deltalw, dmat, constant)
+    dhat <- ht$dhat
+    addc <- ht$addc
+    snew <- sum(wgth * (dhat - dmat) ^ 2) / 4.0
     if (verbose) {
       cat(
         "itel ",

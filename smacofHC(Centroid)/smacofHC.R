@@ -8,7 +8,7 @@ source("smacofGuttmanTransformHC.R")
 source("smacofUtilitiesHC.R")
 source("smacofPlotsHC.R")
 
-smacofHC <- function(mydata,
+smacofHC <- function(thedata,
                      wmat = NULL,
                      ndim = 2,
                      xnorm = TRUE,
@@ -17,9 +17,9 @@ smacofHC <- function(mydata,
                      jitpar = list(itmax = 100, eps = 1e-10, verbose = FALSE),
                      kitpar = list(itmax = 5, eps = 1e-6, verbose = FALSE)
                      ) {
-  gind <- smacofMakeIndicators(mydata)
-  nobj <- nrow(mydata)
-  nvar <- ncol(mydata)
+  gind <- smacofMakeIndicators(thedata)
+  nobj <- nrow(thedata)
+  nvar <- ncol(thedata)
   ncat <- smacofMakeNumberOfCategories(gind)
   dmar <- smacofMakeMarginals(gind)
   if (is.null(wmat)) {
@@ -33,7 +33,7 @@ smacofHC <- function(mydata,
     hj <- wrow[, j] * gind[[j]]
     hmat[[j]] <- t(hj) / pmax(1, colSums(hj))
   }
-  hini <- smacofHomogeneityHC(mydata, wmat, ndim, itpar = jitpar)
+  hini <- smacofHomogeneityHC(thedata, wmat, ndim, itpar = jitpar)
   labd <- smacofMaxEigen(hmat, wmat, wtot, wrow, wcol, itpar = jitpar)
   yold <- hini$y
   xold <- smacofProcrustus(hini$x, wtot)
@@ -48,7 +48,7 @@ smacofHC <- function(mydata,
     zgul <- smacofGuttmanLoopHC(
       gind,
       dmar,
-      mydata,
+      thedata,
       itel,
       kitpar,
       xitpar,
@@ -69,8 +69,6 @@ smacofHC <- function(mydata,
     )
     xnew <- zgul$xnew
     ynew <- zgul$ynew
-    # dist
-    # smid
     dmat <- zgul$dmat
     smid <- zgul$snew
     dhat <- smacofMonotoneRegressionHC(gind, dmat, wmat)
@@ -99,7 +97,7 @@ smacofHC <- function(mydata,
   h <- list(
     xnew = xnew,
     ynew = ynew,
-    mydata = mydata,
+    thedata = thedata,
     gind = gind,
     dmat = dmat,
     dhat = dhat,

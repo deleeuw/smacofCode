@@ -11,7 +11,8 @@ At the moment I have given up on the goal of optimizing
 memory use and speed -- first I create a codebase in
 R, then I'll figure out the optimization (using C).
 
-* smacofAC - Metric with bounds and/or additive constant
+* smacofME - Metric with or without additive constant
+* smacofBO - Bounded with or without additive constant
 * smacofBS - Non-linear with B-splines
 * smacofCR - Non-metric, Conditional rank orders
 * smacofEL - Constrained, spheres and ellipsoids

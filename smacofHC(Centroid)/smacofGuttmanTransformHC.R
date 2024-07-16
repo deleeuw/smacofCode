@@ -27,7 +27,7 @@ smacofGuttmanTransform <- function(wmat, bmat, xold, yold, ndim, ncat) {
 smacofGuttmanLoopHC <-
   function(gind,
            dmar,
-           mydata,
+           thedata,
            itel,
            kitpar,
            xitpar,

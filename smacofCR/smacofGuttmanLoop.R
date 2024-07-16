@@ -1,21 +1,30 @@
 
 smacofGuttmanLoop <-
-  function(itel,
-           wmat,
+  function(data,
+           itel,
            kitmax,
            keps,
            kverbose,
            xold,
+           wmat,
+           wvec,
            vinv,
-           dhat,
-           dmat) {
+           emat,
+           evec,
+           dmat,
+           dvec) {
     ktel <- 1
-    told <- sum(wmat * (dhat - dmat) ^ 2) / 4
+    told <- sum(wvec * (evec - dvec) ^ 2)
     repeat {
-      xnew <-
-        smacofGuttmanTransform(dhat, dmat, wmat, vinv, xold)
+      xnew <- smacofGuttmanTransform(emat, dmat, wmat, vinv, xold)
       dmat <- smacofDistances(xnew)
-      tnew <- sum(wmat * (dhat - dmat) ^ 2) / 4
+      dvec <- smacofMakeDistanceVector(data, dmat)
+      etas <- sum(wvec * (dvec ^ 2))
+      etaa <- 1 / sqrt(etas)
+      dvec <- dvec * etaa
+      dmat <- dmat * etaa
+      xnew <- xnew * etaa
+      tnew <- sum(wvec * (evec - dvec) ^ 2)
       if (kverbose) {
         cat(
           "itel ",
@@ -36,11 +45,14 @@ smacofGuttmanLoop <-
       told <- tnew
       xold <- xnew
     }
-    return(xnew)
+    return(list(xnew = xnew,
+                dvec = dvec,
+                dmat = dmat))
   }
 
-smacofGuttmanTransform <- function(dhat, dmat, wmat, vinv, xold) {
-  bmat <- smacofMakeBmat(wmat, dhat, dmat)
+
+smacofGuttmanTransform <- function(emat, dmat, wmat, vinv, xold) {
+  bmat <- smacofMakeBmat(wmat, emat, dmat)
   xnew <- vinv %*% bmat %*% xold
   return(xnew)
 }

@@ -1,10 +1,10 @@
 
-smacofHomogeneityHC <- function(mydata,
+smacofHomogeneityHC <- function(thedata,
                                 wmat = NULL,
                                 ndim = 2,
                                 itpar = list(itmax = 100, eps = 1e-10, verbose = TRUE)
                                 ) {
-  gind <- smacofMakeIndicators(mydata)
+  gind <- smacofMakeIndicators(thedata)
   nvar <- length(gind)
   nobj <- nrow(gind[[1]])
   ncat <- smacofMakeNumberOfCategories(gind)
