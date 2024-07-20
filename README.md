@@ -12,11 +12,13 @@ memory use and speed -- first I create a codebase in
 R, then I'll figure out the optimization (using C).
 
 * smacofME - Metric with or without additive constant
-* smacofBO - Bounded with or without additive constant
+* smacofBO - Bounded interval with or without additive constant
 * smacofBS - Non-linear with B-splines
 * smacofCR - Non-metric, Conditional rank orders
 * smacofEL - Constrained, spheres and ellipsoids
-* smacofHO - Rectangular, non-metric, Homogeneity Analysis
+* smacofHO - Rectangular, non-metric, Homogeneity Analysis, rank restrictions
+* smacofHC - Rectangular, non-metric, Homogeneity Analysis, centroid restrictions
+* smacofHS - Rectangular, non-metric, Homogeneity Analysis, speherical restrictions
 * smacofID - Individual Differences
 * smacofLN - Constrained, Linear Constraints
 * smacofPC - Non-metric, Paired Comparisons

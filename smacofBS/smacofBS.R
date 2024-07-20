@@ -1,109 +1,104 @@
 
-
 suppressPackageStartupMessages(library(splines2, quietly = TRUE))
 suppressPackageStartupMessages(library(car, quietly = TRUE))
 
-source("smacofReadDataBS.R")
-source("smacofConvertBS.R")
-source("smacofMakeInitialStuffBS.R")
-source("smacofMainLoopsBS.R")
+source("smacofMakeInitialBS.R")
+source("smacofBSplinesBS.R")
+source("smacofGuttmanLoopBS.R")
+source("smacofTransformBS.R")
 source("smacofUtilitiesBS.R")
 source("smacofPlotsBS.R")
 source("smacofWriteBS.R")
 source("smacofDerivativesBS.R")
 
-smacofBS <- function(name) {
-  name <- deparse(substitute(name))
-  smacofReadParameters(name, environment())
-  eps <- 10 ^ -epsi
-  delta <- smacofReadDissimilarities(name)
-  labels <- smacofMakeLabels(nobj, havelabels, name)
+smacofBS <- function(thedata,
+                     ndim = 2,
+                     init = 2,
+                     width = 15,
+                     precision = 10,
+                     labels = NULL,
+                     itmax = 10000,
+                     eps = 1e-10,
+                     verbose = TRUE,
+                     ditmax = 5,
+                     deps = 6,
+                     dverbose = 0,
+                     kitmax = 1,
+                     keps = 6,
+                     kverbose = 0,
+                     degree = 3,
+                     ordinal = TRUE,
+                     haveknots = 3,
+                     ninner = 5,
+                     anchor = 1,
+                     intercept = 0) {
+  indi <- thedata[, 1:2]
+  delta <- thedata[, 3]
+  wgth <- thedata[, 4]
+  nobj <- max(indi)
+  wsum <- sum(wgth)
   basis <- numeric(0)
   innerKnots <- numeric(0)
   if (haveknots == 0) {
     ninner = 0
   }
-  if (haveweights) {
-    wvec <- smacofReadWeights(name)
-    wsum <- sum(weights)
-    vinv <- smacofMakeVinv(wvec)
-  } else {
-    wvec <- numeric(0)
-    vinv <- numeric(0)
-    wsum <- nobj * (nobj - 1) / 2
-  }
   h <- smacofMakeBsplineBasis(delta,
-                              wvec,
-                              haveweights,
+                              wgth,
                               ordinal,
                               anchor,
                               intercept,
                               haveknots,
                               ninner,
-                              degree,
-                              name)
+                              degree)
   basis <- h$basis
   bsums <- h$bsums
   innerKnots <- h$innerKnots
   xold <-
     smacofMakeInitialConfiguration(name, init, delta, nobj, ndim)
   dvec <- smacofDistances(nobj, ndim, xold)
-  etas <- ifelse(haveweights, sum(wvec * (dvec ^ 2)),
-                   sum(dvec ^ 2))
+  etas <- sum(wgth * (dvec ^ 2))
   etaa <- sqrt(wsum / etas)
   dvec <- dvec * etaa
   xold <- xold * etaa
   coef <- 1:ncol(basis)
   evec <- drop(basis %*% coef)
-  if (haveweights) {
-    esum <- sum(wvec * evec * dvec)
-    fsum <- sum(wvec * evec ^ 2)
-  } else {
-    esum <- sum(evec * dvec)
-    fsum <- sum(evec ^ 2)
-  }
+  esum <- sum(wgth * evec * dvec)
+  fsum <- sum(wgth * evec ^ 2)
   lbd <- esum / fsum
   evec <- evec * lbd
   coef <- coef * lbd
-  sold <- ifelse(haveweights, sum(wvec * (evec - dvec) ^ 2) / 2,
-                 sum((evec - dvec) ^ 2) / 2)
+  sold <- sum(wgth * (evec - dvec) ^ 2) / 2
   itel <- 1
   repeat {
     hg <-
-      smacofGuttmanLoop(
-        nobj,
-        ndim,
-        itel,
-        haveweights,
-        wsum,
-        kitmax,
-        kepsi,
-        kverbose,
-        sold,
-        xold,
-        wvec,
-        vinv,
-        evec,
-        dvec
-        )
+      smacofGuttmanLoop(nobj,
+                        ndim,
+                        itel,
+                        wsum,
+                        kitmax,
+                        keps,
+                        kverbose,
+                        sold,
+                        xold,
+                        wvec,
+                        vinv,
+                        evec,
+                        dvec)
     xold <- hg$xnew
     dvec <- hg$dvec
     ht <-
-      smacofTransformLoop(
-        itel,
-        haveweights,
-        ditmax,
-        depsi,
-        dverbose,
-        ordinal,
-        hg$snew,
-        wvec,
-        basis,
-        bsums,
-        coef,
-        evec,
-        dvec
-      )
+      smacofTransformLoop(itel,
+                          ditmax,
+                          deps,
+                          dverbose,
+                          ordinal,
+                          hg$snew,
+                          wvec,
+                          basis,
+                          bsums,
+                          coef,
+                          evec,
+                          dvec)
     snew <- ht$snew
     if (verbose) {
       cat(
@@ -139,8 +134,6 @@ smacofBS <- function(name) {
     dvec = dvec,
     wvec = wvec,
     delta = delta,
-    haveweights = haveweights,
-    havelabels = havelabels,
     labels = labels,
     ordinal = ordinal,
     degree = degree,

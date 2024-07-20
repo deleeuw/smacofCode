@@ -1,5 +1,4 @@
 
-
 smacofGuttmanLoopME <-
   function(thedata,
            dhat,

@@ -1,109 +1,58 @@
-smacofTorgerson <- function(evec, n, p) {
-  mhat <- smacofRMVectorToDist(evec, matrix = TRUE)
-  dd <- mhat ^ 2
-  rd <- rowSums(dd) / n
-  sd <- sum(dd) / (n ^ 2)
-  cd <- -(dd - outer(rd, rd, "+") + sd) / 2
-  xd <- eigen(cd, symmetric = TRUE)
-  ed <- xd$values[1:p]
-  xold <- xd$vectors[, 1:p] %*% diag(sqrt(pmax(0, ed)))
-  return(smacofRectangularMatrixToRMVector(xold))
-}
 
-smacofCenter <- function(x, n, p) {
-  for (s in 1:p) {
-    sum = 0.0
-    for (i in 1:n) {
-      is <- (i - 1) * p + s
-      sum <- sum + x[is]
-    }
-    ave <- sum / n
-    for (i in 1:n) {
-      is <- (i - 1) * p + s
-      x[is] <- x[is] - ave
-    }
-  }
+smacofCenterBS <- function(x) {
+  x <- apply(x, 2, function(x) x - mean(x))
   return(x)
 }
 
-smacofMakeVinv <- function(wvec) {
-  wmat <- smacofRMVectorToDist(wvec, matrix = TRUE)
-  nn <- 1 / nrow(wmat)
-  vmat <- -wmat
-  diag(vmat) <- -rowSums(vmat)
-  vmat <- solve(vmat + nn) - nn
-  return(-smacofDistToRMVector(vmat))
+smacofDistancesBS <- function(thedata, x) {
+  m <- nrow(thedata)
+  dvec <- vector("numeric", m)
+  for (k in 1:m) {
+    i <- thedata[k, 1]
+    j <- thedata[k, 2]
+    dvec[k] <- sqrt(sum((x[i, ] - x[j, ]) ^ 2))
+  }
+  return(dvec)
 }
 
-smacofDistances <- function(nobj, ndim, x) {
-  k <- 1
-  m <- nobj * (nobj - 1) / 2
-  d <- rep(0, m)
-  for (i in 2:nobj) {
-    ii <- (i - 1) * ndim
-    for (j in 1:(i - 1)) {
-      jj <- (j - 1) * ndim
-      sum <- 0.0
-      for (s in 1:ndim) {
-        is <- ii + s
-        js <- jj + s
-        sum <- sum + (x[is] - x[js]) ^ 2
+smacofMatMult <- function(indi, values, x) {
+  nobj <- nrow(x)
+  ndim <- ncol(x)
+  m <- nrow(indi)
+  z <- matrix(0, nobj, ndim)
+  for (l in 1:nobj) {
+    for (k in 1:m) {
+      i <- indi[k, 1]
+      j <- indi[k, 2]
+      if (i == l) {
+        z[l, ] <- z[l, ] + values[k] * x[j, ]
       }
-      d[k] <- sqrt(sum)
-      k <- k + 1
+      if (j == l) {
+        z[l, ] <- z[l, ] + values[k] * x[i, ]
+      }
     }
   }
-  return(d)
+  return(z)
 }
 
-smacofGuttmanTransform <-
-  function(nobj,
-           ndim,
-           haveweights,
-           wvec,
-           vinv,
-           evec,
-           dvec,
-           x) {
-    k <- 1
-    xaux <- rep(0, nobj * ndim)
-    xnew <- rep(0, nobj * ndim)
-    for (i in 2:nobj) {
-      ii <- (i - 1) * ndim
-      for (j in 1:(i - 1)) {
-        jj <- (j - 1) * ndim
-        for (s in 1:ndim) {
-          is <- ii + s
-          js <- jj + s
-          fac <- (evec[k] / dvec[k]) * (x[is] - x[js])
-          if (haveweights) {
-            fac <- fac * wvec[k]
-          }
-          xaux[is] <- xaux[is] + fac
-          xaux[js] <- xaux[js] - fac
-        }
-        k <- k + 1
+smacofSMCMatMult <- function(indi, values, x) {
+  nobj <- nrow(x)
+  ndim <- ncol(x)
+  m <- nrow(indi)
+  z <- matrix(0, nobj, ndim)
+  for (l in 1:nobj) {
+    for (k in 1:m) {
+      i <- indi[k, 1]
+      j <- indi[k, 2]
+      fac <- values[k] * (x[i, ] - x[j, ])
+      if (i == l) {
+        z[l, ] <- z[l, ] + fac
+      }
+      if (j == l) {
+        z[l, ] <- z[l, ] - fac
       }
     }
-    if (haveweights) {
-      k <- 1
-      for (i in 2:nobj) {
-        ii <- (i - 1) * ndim
-        for (j in 1:(i - 1)) {
-          jj <- (j - 1) * ndim
-          for (s in 1:ndim) {
-            is <- ii + s
-            js <- jj + s
-            fac <- vinv[k] * (xaux[is] - xaux[js])
-            xnew[is] <- xnew[is] + fac
-            xnew[js] <- xnew[js] - fac
-          }
-          k <- k + 1
-        }
-      }
-    }
-    else {
-      xnew <- xaux / nobj
-    }
-    return(xnew)
   }
+  return(z)
+}
+

@@ -55,7 +55,7 @@ smacofME <- function(thedata,
                         )
     dmat <- smacofDistancesME(thedata, xnew)
     smid <- sum(wgth * (dhat - dmat) ^ 2)
-    if (constant) {
+    if (constant == TRUE) {
       ht <- smacofAdditiveConstant(delta, dmat, wgth)
       dhat <- ht$dhat
       addc <- ht$addc

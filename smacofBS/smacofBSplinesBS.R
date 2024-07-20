@@ -1,16 +1,3 @@
-smacofMakeInitialConfiguration <-
-  function(name, init, evec, nobj, ndim) {
-    if (init == 1) {
-      xold <- smacofReadInitialConfiguration(name)
-    }
-    if (init == 2) {
-      xold <- smacofTorgerson(evec, nobj, ndim)
-    }
-    if (init == 3) {
-      xold <- rnorm(nobj * ndim)
-    }
-    return(smacofCenter(xold, nobj, ndim))
-  }
 
 smacofMakeInnerKnots <-
   function(haveknots, ninner, anchor, delta, name) {
@@ -43,27 +30,15 @@ smacofMakeKnots <- function(degree, innerKnots) {
   return(c(rep(0, degree + 1), innerKnots, rep(1, degree + 1)))
 }
 
-smacofMakeLabels <- function(nobj, havelabels, name) {
-  if (havelabels == 1) {
-    return(smacofReadLabels(name))
-  }
-  if (havelabels == 2) {
-    return(as.character(1:nobj))
-  }
-  return(NULL)
-}
-
 smacofMakeBsplineBasis <-
   function(delta,
-           wvec,
-           haveweights,
+           wgth,
            ordinal,
            anchor,
            intercept,
            haveknots,
            ninner,
-           degree,
-           name) {
+           degree) {
     minDelta <- min(delta)
     maxDelta <- max(delta)
     if (anchor) {
@@ -86,11 +61,7 @@ smacofMakeBsplineBasis <-
     if (ordinal) {
       basis <- smacofCumulateBasis(basis)
     }
-    if (haveweights) {
-      bsums <- colSums(wvec * (basis ^ 2))
-    } else {
-      bsums <- colSums(basis ^ 2)
-    }
+    bsums <- colSums(wgth * (basis ^ 2))
     basis <- basis[, which(bsums > 0), drop = FALSE]
     bsums <- bsums[which(bsums > 0)]
     return(list(basis = basis,

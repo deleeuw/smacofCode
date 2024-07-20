@@ -10,7 +10,7 @@ diag(v) <- -rowSums(v)
 vinv <- ginv(v)
 bmat <- -(w * dhat) / (dmat + diag(6))
 diag(bmat) <- -rowSums(bmat)
-xnew <- smacofCenterIV(vinv %*% bmat %*% x)
+xnew <- smacofCenterME(vinv %*% bmat %*% x)
 dttt <- matrix(0, 15, 6)
 k <- 1
 for (i in 2:6) {
