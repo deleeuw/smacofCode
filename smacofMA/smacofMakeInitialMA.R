@@ -1,4 +1,5 @@
-smacofTorgersonME <- function(thedata, p, itmax = 100, eps = 1e-10, verbose = TRUE) {
+smacofTorgersonMA <- function(thedata, p, itmax = 100, eps = 1e-10, 
+                              verbose = TRUE) {
   indi <- thedata[, 1:2]
   delt <- thedata[, 3] ^ 2
   n <- max(indi)
@@ -10,7 +11,8 @@ smacofTorgersonME <- function(thedata, p, itmax = 100, eps = 1e-10, verbose = TR
     xaux <- smacofMatMult(indi, delt, xold)
     xbux <- outer(rep(1, n), dave) %*% xold
     xaux <- -0.5 * smacofCenterME(xaux - xbux)
-    xnew <- qr.Q(qr(xaux))
+    saux <- svd(xaux)
+    xnew <- tcrossprod(saux$u, saux$v)
     chng <- max(abs(xold - xnew))
     if (verbose) {
       cat("itel", formatC(itel, format = "d"),
@@ -24,9 +26,7 @@ smacofTorgersonME <- function(thedata, p, itmax = 100, eps = 1e-10, verbose = TR
     itel <- itel + 1
     xold <- xnew
   }
-  xaux <- smacofMatMult(indi, delt, xnew)
-  lbd <- -.5 * diag(crossprod(xnew, xaux))
-  return(-.5 * (delt - outer(rep(1, n), dave)) %*% xnew)
+  return(xaux)
 }
 
 smacofMakeRanks <- function(delta, wmat) {

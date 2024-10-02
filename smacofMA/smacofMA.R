@@ -1,30 +1,33 @@
 
-
-source("smacofMakeInitialME.R")
-source("smacofGuttmanTransformME.R")
-source("smacofUtilitiesME.R")
-source("smacofPlotsME.R")
+source("smacofMakeInitialMA.R")
+source("smacofGuttmanLoopMA.R")
+source("smacofUtilitiesMA.R")
+source("smacofPlotsMA.R")
+source("smacofTransformMA.R")
 
 smacofME <- function(thedata,
                      ndim = 2,
                      xold = NULL,
+                     constant = FALSE,
                      labels = NULL,
                      width = 15,
                      precision = 10,
                      itmax = 1000,
                      eps = 1e-10,
                      verbose = TRUE,
-                     jitmax = 20,
-                     jeps = 1e-10,
-                     jverbose = FALSE,
                      kitmax = 20,
                      keps = 1e-10,
                      kverbose = FALSE,
+                     jitmax = 20,
+                     jeps = 1e-10,
+                     jverbose = FALSE,
                      init = 1) {
   indi <- thedata[, 1:2]
+  wgth <- thedata[, 4]
   delta <- thedata[, 3]
-  wght <- thedata[, 4]
   nobj <- max(indi)
+  addc <- 0.0
+  dhat <- delta + addc
   if (is.null(xold)) {
     if (init == 1) {
       xold <- smacofTorgersonME(thedata, ndim, jitmax , jeps, jverbose)
@@ -33,13 +36,29 @@ smacofME <- function(thedata,
     }
   }
   dmat <- smacofDistancesME(thedata, xold)
-  sold <- sum(wght * (delta - dmat) ^ 2)
+  sold <- sum(wgth * (dhat - dmat) ^ 2)
   itel <- 1
   repeat {
     xnew <-
-      smacofGuttmanTransformME(thedata, dmat, delta, wght, xold, kitmax, keps, kverbose)
+      smacofGuttmanLoopME(thedata,
+                        dhat,
+                        dmat,
+                        wgth,
+                        kitmax,
+                        keps,
+                        kverbose,
+                        jitmax,
+                        jeps,
+                        jverbose,
+                        xold,
+                        itel
+                        )
     dmat <- smacofDistancesME(thedata, xnew)
-    snew <- sum(wght * (delta - dmat) ^ 2)
+    smid <- sum(wgth * (dhat - dmat) ^ 2)
+      ht <- smacofAdditiveConstant(delta, dmat, wgth)
+      dhat <- ht$dhat
+      addc <- ht$addc
+    snew <- sum(wgth * (dhat - dmat) ^ 2)
     if (verbose) {
       cat(
         "itel ",
@@ -47,6 +66,13 @@ smacofME <- function(thedata,
         "sold ",
         formatC(
           sold,
+          width = width,
+          digits = precision,
+          format = "f"
+        ),
+        "smid ",
+        formatC(
+          smid,
           width = width,
           digits = precision,
           format = "f"
@@ -76,6 +102,8 @@ smacofME <- function(thedata,
     itel = itel,
     xnew = xnew,
     dmat = dmat,
+    dhat = dhat,
+    addc = addc,
     labels = labels
   )
   return(h)
