@@ -13,6 +13,7 @@ smacofME <- function(thedata,
                      precision = 10,
                      itmax = 1000,
                      eps = 1e-10,
+                     accel = 0,
                      verbose = TRUE,
                      jitmax = 20,
                      jeps = 1e-10,
@@ -33,13 +34,25 @@ smacofME <- function(thedata,
     }
   }
   dmat <- smacofDistancesME(thedata, xold)
-  sold <- sum(wght * (delta - dmat) ^ 2)
+  sold <- sum(wght * (delta - dmat)^2)
   itel <- 1
   repeat {
+    if (accel > 0) {
+      xaux <-
+        smacofGuttmanTransformME(thedata, dmat, delta, wght, xold, kitmax, keps, kverbose)
+      xold <- 2 * xaux - xold
+      dmat <- smacofDistancesME(thedata, xold)
+    }
+    if (accel > 1) {
+      xaux <-
+        smacofGuttmanTransformME(thedata, dmat, delta, wght, xold, kitmax, keps, kverbose)
+      xold <- 2 * xaux - xold
+      dmat <- smacofDistancesME(thedata, xold)
+    }
     xnew <-
       smacofGuttmanTransformME(thedata, dmat, delta, wght, xold, kitmax, keps, kverbose)
     dmat <- smacofDistancesME(thedata, xnew)
-    snew <- sum(wght * (delta - dmat) ^ 2)
+    snew <- sum(wght * (delta - dmat)^2)
     if (verbose) {
       cat(
         "itel ",

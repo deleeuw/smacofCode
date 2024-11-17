@@ -1,5 +1,4 @@
 
-
 smacofGuttmanTransformME <- function(thedata,
                                      dmat,
                                      dhat,

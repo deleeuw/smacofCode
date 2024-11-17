@@ -1,58 +1,36 @@
+smacofTorgerson <- function(delta, ndim) {
+  nobj <- nrow(delta)
+  dd <- delta ^ 2
+  rd <- rowSums(dd) / nobj
+  sd <- sum(dd) / (nobj ^ 2)
+  cd <- -(dd - outer(rd, rd, "+") + sd) / 2
+  xd <- eigen(cd, symmetric = TRUE)
+  ed <- xd$values[1:ndim]
+  xold <- xd$vectors[, 1:ndim] %*% diag(sqrt(pmax(0, ed)))
+  return(xold)
+}
 
-smacofCenterME <- function(x) {
+smacofCenter <- function(x) {
   x <- apply(x, 2, function(x) x - mean(x))
   return(x)
 }
 
-smacofDistancesME <- function(thedata, x) {
-  m <- nrow(thedata)
-  dvec <- vector("numeric", m)
-  for (k in 1:m) {
-    i <- thedata[k, 1]
-    j <- thedata[k, 2]
-    dvec[k] <- sqrt(sum((x[i, ] - x[j, ]) ^ 2))
-  }
-  return(dvec)
+smacofMakeVmat <- function(wmat) {
+  vmat <- -wmat
+  diag(vmat) <- -rowSums(vmat)
+  return(vmat)
 }
 
-smacofMatMult <- function(indi, values, x) {
-  nobj <- nrow(x)
-  ndim <- ncol(x)
-  m <- nrow(indi)
-  z <- matrix(0, nobj, ndim)
-  for (l in 1:nobj) {
-    for (k in 1:m) {
-      i <- indi[k, 1]
-      j <- indi[k, 2]
-      if (i == l) {
-        z[l, ] <- z[l, ] + values[k] * x[j, ]
-      }
-      if (j == l) {
-        z[l, ] <- z[l, ] + values[k] * x[i, ]
-      }
-    }
-  }
-  return(z)
+smacofMakeBmat <- function(wmat, delta, dmat) {
+  n <- nrow(delta)
+  bmat <- -wmat * delta / (dmat + diag(n))
+  diag(bmat) <- -rowSums(bmat)
+  return(bmat)
 }
 
-smacofSMCMatMult <- function(indi, values, x) {
-  nobj <- nrow(x)
-  ndim <- ncol(x)
-  m <- nrow(indi)
-  z <- matrix(0, nobj, ndim)
-  for (l in 1:nobj) {
-    for (k in 1:m) {
-      i <- indi[k, 1]
-      j <- indi[k, 2]
-      fac <- values[k] * (x[i, ] - x[j, ])
-      if (i == l) {
-        z[l, ] <- z[l, ] + fac
-      }
-      if (j == l) {
-        z[l, ] <- z[l, ] - fac
-      }
-    }
-  }
-  return(z)
+smacofDistances <- function(x) {
+  dmat <- as.matrix(dist(x))
+  return(dmat)
 }
+
 
