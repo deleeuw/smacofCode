@@ -25,7 +25,7 @@ R, then I'll figure out the optimization (using C).
 * smacofHS - Rectangular, non-metric, Homogeneity Analysis, Circular Constraints
 * smacofID - Individual Differences
 * smacofLN - Constrained, Linear Constraints
-# smacofME - Metric, with acceleration
+* smacofME - Metric, with acceleration
 * smacofPC - Non-metric, Paired Comparisions
 * smacofPO - Non-linear, Power Functions
 * smacofQQ - Constrained, simplex, circumplex, uniqueness
