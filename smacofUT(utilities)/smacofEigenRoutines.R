@@ -1,5 +1,7 @@
 smacofSymmetricEckartYoung <- function(cmat,
                                        p = 2,
+                                       kold = 
+                                         qr.Q(qr(matrix(rnorm(nrow(cmat) * p), nrow(cmat), p))),
                                        bnd = FALSE,
                                        itmax = 1000,
                                        eps = 1e-10,
@@ -10,14 +12,16 @@ smacofSymmetricEckartYoung <- function(cmat,
     bbnd <- min(2 * diag(abs(cmat)) - rowSums(abs(cmat)))
   }
   amat <- cmat - bbnd * diag(n)
-  kold <- qr.Q(qr(matrix(rnorm(n * p), n, p)))
-  lold <- diag(crossprod(kold, cmat %*% kold))
-  fold <- sum(lold)
+  lold <- diag(crossprod(kold, amat %*% kold))
+  xold <- kold %*% diag(sqrt(lold))
+  fold <- sum((amat - tcrossprod(xold)) ^ 2)
   itel <- 1
   repeat {
-    knew <- qr.Q(qr(amat %*% kold))
-    lnew <- diag(crossprod(knew, cmat %*% knew))
-    fnew <- sum(lnew)
+    snew <- svd(amat %*% kold %*% diag(lold))
+    knew <- tcrossprod(snew$u, snew$v)
+    lnew <- diag(crossprod(knew, amat %*% knew))
+    xnew <- knew %*% diag(sqrt(lnew))
+    fnew <- sum((amat - tcrossprod(xnew)) ^ 2)
     if (verbose) {
       cat(
         "itel ",
@@ -29,7 +33,7 @@ smacofSymmetricEckartYoung <- function(cmat,
         "\n"
       )
     }
-    if (((fnew - fold) < eps) || (itel == itmax)) {
+    if (((fold - fnew) < eps) || (itel == itmax)) {
       break
     }
     itel <- itel + 1
@@ -37,7 +41,8 @@ smacofSymmetricEckartYoung <- function(cmat,
     kold <- knew
     lold <- lnew
   }
-  x <- knew %*% diag(sqrt(pmax(lnew, 0)))
+  lnew <- sqrt(pmax(0, diag(crossprod(knew, cmat %*% knew))))
+  x <- knew %*% diag(lnew)
   f <- sum((cmat - tcrossprod(x))^2)
   return(list(
     k = knew,

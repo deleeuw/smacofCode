@@ -1,10 +1,14 @@
-set.seed(12345)
-s1 <- crossprod(matrix(rnorm(1000), 100, 10)) / 100
-s2 <- matrix(rnorm(100), 10, 10)
-s2 <- s2 + t(s2)
-kk <- qr.Q(qr(matrix(rnorm(100), 10, 10)))
-ll <- c(5, rep(-1, 9))
-s3 <- kk %*% diag(ll) %*% t(kk)
+source("smacofEigenRoutines.R")
+source("smacofNNLS.R")
+
+
+data <- c(1, 2, NA, 1, 3, 1, 1, 4, NA, 2, 3, 2, 2, 4, 1, 3, 4, NA)
+data <- matrix(data, 6, 3, byrow = TRUE)
+
+dat2 <- c(1, 2, 1, 1, 3, 1, 1, 4, 1, 2, 3, 2, 2, 4, 1, 3, 4, 1)
+dat2 <- matrix(dat2, 6, 3, byrow = TRUE)
+
+
 
 smacofTorgersonWithMissing <- function(data,
                                        p = 2,
@@ -13,26 +17,100 @@ smacofTorgersonWithMissing <- function(data,
                                        verbose = TRUE,
                                        jtmax = 100,
                                        jeps = 1e-10,
-                                       jverbose = TRUE,
+                                       jverbose = FALSE,
                                        ktmax = 5,
                                        keps = 1E-10,
                                        kverbose = FALSE) {
-  n <- max(data[,1:2])
-  dave <- mean(data[, 3])
-  bmat <- -smacofDoubleCenter(delta ^ 2) / 2
+  n <- max(data[, 1:2])
+  m <- nrow(data)
+  indi <- which(is.na(data[, 3]))
+  indn <- data[indi, 1:2]
+  nmis <- length(indi)
+  if (nmis > 0) {
+    cmat <- matrix(0, nmis, nmis)
+    for (k in 1:(nmis - 1)) {
+      indk <- sort(indn[k, ])
+      for (l in (k + 1):nmis) {
+        indl <- sort(indn[l, ])
+        coml <- length(which(indk == indl))
+        if (coml == 0) {
+          cmat[k, l] <- cmat[l, k] <- 1 / (n^2)
+        }
+        if (coml == 1) {
+          cmat[k, l] <- cmat[l, k] <- 1 / (n^2) - 1 / (2 * n)
+        }
+        if (coml == 2) {
+          cmat[k, l] <- cmat[l, k] <- 1 / 2 + 1 / (n^2) - 1 / n
+        }
+      }
+    }
+    diag(cmat) <- 1 / 2 + 1 / (n^2) - 1 / n
+    labd <- max(rowSums(abs(cmat)))
+    told <- rep(0, nmis)
+  }
+  delta <- matrix(0, n, n)
+  for (k in 1:m) {
+    if (is.na(data[k, 3])) {
+      delta[data[k, 1], data[k, 2]] <- delta[data[k, 2], data[k, 1]] <- 0
+    } else {
+      delta[data[k, 1], data[k, 2]] <- delta[data[k, 2], data[k, 1]] <- data[k, 3]
+    }
+  }
+  bzero <- -smacofDoubleCenter(delta^2) / 2
   h <- smacofSymmetricEckartYoung(
-    bmat,
+    bzero,
     p = p,
     bnd = TRUE,
     itmax = jtmax,
     eps = jeps,
     verbose = jverbose
   )
-  xold <- h$x
-  repeat {
+  if (nmis == 0) {
+    return(list(x = h$x, f = h$f))
+  }
+  if (nmis > 0) {
+    xold <- h$x
+    fold <- h$f
+    bcof <- rep(0, nmis)
+    itel <- 1
+    repeat {
+      rold <- bzero - tcrossprod(xold)
+      cons <- sum(rold ^ 2)
+      for (k in 1:nmis) {
+        bcof[k] <- -rold[indn[k, 1], indn[k, 2]]
+      }
+      h <- smacofNonnegativeQP(
+        cmat,
+        bcof,
+        cons = cons,
+        xold = told,
+        bnd = labd,
+        itmax = ktmax,
+        eps = keps,
+        verbose = kverbose
+      )
+      tnew <- h$x
+      fmid <- h$f
+      for (k in 1:nmis) {
+        delta[indn[k, 1], indn[k, 2]] <- delta[indn[k, 2], indn[k, 1]] <- tnew[k]
+      }
+      bnew <- -smacofDoubleCenter(delta ^ 2) / 2
+      h <- smacofSymmetricEckartYoung(
+        bnew,
+        p = p,
+        bnd = TRUE,
+        itmax = jtmax,
+        eps = jeps,
+        verbose = jverbose
+      )
+      fnew <- h$f
+      xnew <- h$x
+    }
     
   }
 }
+
+
 
 smacofElegant <- function() {
   
@@ -173,4 +251,14 @@ smacofDoubleCenter <- function(a) {
   rb <- apply(a, 2, mean)
   rr <- mean(a)
   return(a - outer(ra, rb, "+") + rr)
+}
+
+smacofMakeEij <- function(i, j, n) {
+  e <- matrix(0, n, n)
+  if (i == j) {
+    e[i, i] <- 1
+  } else {
+    e[i, j] <- e[j, i] <- 1
+  }
+  return(e)
 }
