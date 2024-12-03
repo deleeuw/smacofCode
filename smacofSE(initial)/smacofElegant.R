@@ -1,264 +1,111 @@
-source("smacofEigenRoutines.R")
-source("smacofNNLS.R")
+source("../smacofUT(utilities)/smacofEigenRoutines.R")
+source("../smacofUT(utilities)/smacofNNLS.R")
+source("../smacofUT(utilities)/smacofSimpleUtilities.R")
+source("../smacofUT(utilities)/smacofIOUtilities.R")
+source("../smacofUT(utilities)/smacofDataUtilities.R")
 
+source("smacofMaximumSum.R")
 
-data <- c(1, 2, NA, 1, 3, 1, 1, 4, NA, 2, 3, 2, 2, 4, 1, 3, 4, NA)
-data <- matrix(data, 6, 3, byrow = TRUE)
+library(RSpectra)
 
-dat2 <- c(1, 2, 1, 1, 3, 1, 1, 4, 1, 2, 3, 2, 2, 4, 1, 3, 4, 1)
-dat2 <- matrix(dat2, 6, 3, byrow = TRUE)
+data(ekman, package = "smacof")
+ekman <- as.matrix(1 - ekman)
 
-
-
-smacofTorgersonWithMissing <- function(data,
-                                       p = 2,
-                                       itmax = 100,
-                                       eps = 1e-10,
-                                       verbose = TRUE,
-                                       jtmax = 100,
-                                       jeps = 1e-10,
-                                       jverbose = FALSE,
-                                       ktmax = 5,
-                                       keps = 1E-10,
-                                       kverbose = FALSE) {
-  n <- max(data[, 1:2])
-  m <- nrow(data)
-  indi <- which(is.na(data[, 3]))
-  indn <- data[indi, 1:2]
-  nmis <- length(indi)
-  if (nmis > 0) {
-    cmat <- matrix(0, nmis, nmis)
-    for (k in 1:(nmis - 1)) {
-      indk <- sort(indn[k, ])
-      for (l in (k + 1):nmis) {
-        indl <- sort(indn[l, ])
-        coml <- length(which(indk == indl))
-        if (coml == 0) {
-          cmat[k, l] <- cmat[l, k] <- 1 / (n^2)
-        }
-        if (coml == 1) {
-          cmat[k, l] <- cmat[l, k] <- 1 / (n^2) - 1 / (2 * n)
-        }
-        if (coml == 2) {
-          cmat[k, l] <- cmat[l, k] <- 1 / 2 + 1 / (n^2) - 1 / n
-        }
-      }
-    }
-    diag(cmat) <- 1 / 2 + 1 / (n^2) - 1 / n
-    labd <- max(rowSums(abs(cmat)))
-    told <- rep(0, nmis)
-  }
-  delta <- matrix(0, n, n)
-  for (k in 1:m) {
-    if (is.na(data[k, 3])) {
-      delta[data[k, 1], data[k, 2]] <- delta[data[k, 2], data[k, 1]] <- 0
-    } else {
-      delta[data[k, 1], data[k, 2]] <- delta[data[k, 2], data[k, 1]] <- data[k, 3]
-    }
-  }
-  bzero <- -smacofDoubleCenter(delta^2) / 2
-  h <- smacofSymmetricEckartYoung(
-    bzero,
-    p = p,
-    bnd = TRUE,
-    itmax = jtmax,
-    eps = jeps,
-    verbose = jverbose
-  )
-  if (nmis == 0) {
-    return(list(x = h$x, f = h$f))
-  }
-  if (nmis > 0) {
-    xold <- h$x
-    fold <- h$f
-    bcof <- rep(0, nmis)
-    itel <- 1
-    repeat {
-      rold <- bzero - tcrossprod(xold)
-      cons <- sum(rold ^ 2)
-      for (k in 1:nmis) {
-        bcof[k] <- -rold[indn[k, 1], indn[k, 2]]
-      }
-      h <- smacofNonnegativeQP(
-        cmat,
-        bcof,
-        cons = cons,
-        xold = told,
-        bnd = labd,
-        itmax = ktmax,
-        eps = keps,
-        verbose = kverbose
-      )
-      tnew <- h$x
-      fmid <- h$f
-      for (k in 1:nmis) {
-        delta[indn[k, 1], indn[k, 2]] <- delta[indn[k, 2], indn[k, 1]] <- tnew[k]
-      }
-      bnew <- -smacofDoubleCenter(delta ^ 2) / 2
-      h <- smacofSymmetricEckartYoung(
-        bnew,
-        p = p,
-        bnd = TRUE,
-        itmax = jtmax,
-        eps = jeps,
-        verbose = jverbose
-      )
-      fnew <- h$f
-      xnew <- h$x
-    }
-    
-  }
-}
-
-
-
-smacofElegant <- function() {
-  
-}
-
-smacofSymmetricEckartYoung <- function(cmat,
-                                       p = 2,
-                                       bnd = FALSE,
-                                       itmax = 1000,
-                                       eps = 1e-10,
-                                       verbose = TRUE) {
-  n <- nrow(cmat)
-  bbnd <- 0
-  if (bnd) {
-    bbnd <- min(2 * diag(abs(cmat)) - rowSums(abs(cmat)))
-  }
-  amat <- cmat - bbnd * diag(n)
-  kold <- qr.Q(qr(matrix(rnorm(n * p), n, p)))
-  lold <- diag(crossprod(kold, cmat %*% kold))
-  fold <- sum(lold)
-  itel <- 1
-  repeat {
-    knew <- qr.Q(qr(amat %*% kold))
-    lnew <- diag(crossprod(knew, cmat %*% knew))
-    fnew <- sum(lnew)
-    if (verbose) {
-      cat(
-        "itel ",
-        formatC(itel, format = "d", width = 4),
-        "fold ",
-        formatC(fold, digits = 10, format = "f"),
-        "fnew ",
-        formatC(fnew, digits = 10, format = "f"),
-        "\n"
-      )
-    }
-    if (((fnew - fold) < eps) || (itel == itmax)) {
-      break
-    }
-    itel <- itel + 1
-    fold <- fnew
-    kold <- knew
-    lold <- lnew
-  }
-  x <- knew %*% diag(sqrt(pmax(lnew, 0)))
-  f <- sum((cmat - tcrossprod(x))^2)
-  return(list(
-    k = knew,
-    l = lnew,
-    x = x,
-    f = f,
-    b = bbnd,
-    itel = itel
-  ))
-}
-
-smacofBauerRutishauser <- function(cmat,
-                                   p = 2,
-                                   bnd = FALSE,
-                                   itmax = 1000,
-                                   eps = 1e-10,
-                                   verbose = TRUE) {
-  n <- nrow(cmat)
-  bbnd <- 0
-  if (bnd) {
-    bbnd <- min(2 * diag(abs(cmat)) - rowSums(abs(cmat)))
-  }
-  amat <- cmat - bbnd * diag(n)
-  kold <- qr.Q(qr(matrix(rnorm(n * p), n, p)))
-  lold <- diag(crossprod(kold, cmat %*% kold))
-  fold <- sum(lold)
-  itel <- 1
-  repeat {
-    knew <- qr.Q(qr(amat %*% kold))
-    lnew <- diag(crossprod(knew, cmat %*% knew))
-    fnew <- sum(lnew)
-    if (verbose) {
-      cat(
-        "itel ",
-        formatC(itel, format = "d", width = 4),
-        "fold ",
-        formatC(fold, digits = 10, format = "f"),
-        "fnew ",
-        formatC(fnew, digits = 10, format = "f"),
-        "\n"
-      )
-    }
-    if (((fnew - fold) < eps) || (itel == itmax)) {
-      break
-    }
-    itel <- itel + 1
-    fold <- fnew
-    kold <- knew
-    lold <- lnew
-  }
-  lnew <- diag(crossprod(knew, cmat %*% knew))
-  return(list(
-    k = knew,
-    l = lnew,
-    f = fnew,
-    b = bbnd,
-    itel = itel
-  ))
-}
-
-smacofMarkham <- function(a,
-                          itmax = 100,
+smacofElegant <- function(delta,
+                          p = 2,
+                          wght = NULL,
+                          xold = 1,
+                          bnd = 1,
+                          itmax = 10000,
                           eps = 1e-10,
                           verbose = TRUE) {
+  n <- nrow(delta)
+  if (is.null(wght)) {
+    wght <- 1 - diag(n)
+  }
+  delsq <- delta^2
   itel <- 1
+  if (xold  == 0) {
+    xold <- smacofCenter(matrix(rnorm(n * p), n, p))
+  } else {
+    xold <- smacofMaximumSum(delta)
+  }
+  dold <- as.matrix(dist(xold))^2
+  labd <- sum(wght * delsq * dold) / sum(wght * dold^2)
+  xold <- sqrt(labd) * xold
+  dold <- labd * dold
+  cold <- tcrossprod(xold)
+  rold <- -wght * (delsq - dold)
+  diag(rold) <- -rowSums(rold)
+  fold <- sum(wght * (delsq - dold)^2) / 2
+  if (bnd == 0) {
+    mu <- 2 * sum(wght)
+  }
+  if (bnd == 1) {
+    mu <- 4 * max(rowSums(wght))
+  }
+  if (bnd == 2) {
+    if (all(wght[outer(1:n, 1:n, ">")] == 1)) {
+      mu <- 2 * n
+    } else {
+      mu <- eigs_sym(
+        smacofRSpectraSupport,
+        1,
+        which = "LA",
+        opts = list(retvec = FALSE),
+        n = n^2,
+        args = wght
+      )$values
+    }
+  }
   repeat {
-    r <- rowSums(a)
-    minr <- min(r)
-    maxr <- max(r)
+    caux <- cold + rold / mu
+    h <- eigs_sym(caux, p, which = "LA")
+    xnew <- h$vectors %*% diag(sqrt(pmax(0, h$values)))
+    dnew <- as.matrix(dist(xnew))^2
+    cnew <- tcrossprod(xnew)
+    rnew <- -wght * (delsq - dnew)
+    diag(rnew) <- -rowSums(rnew)
+    fnew <- sum(wght * (delsq - dnew)^2) / 2
     if (verbose) {
       cat(
         "itel ",
         formatC(itel, format = "d"),
-        "minr ",
-        formatC(minr, digits = 10, format = "f"),
-        "maxr ",
-        formatC(maxr, digits = 10, format = "f"),
+        "fold ",
+        formatC(fold, digits = 10, format = "f"),
+        "fnew ",
+        formatC(fnew, digits = 10, format = "f"),
         "\n"
       )
     }
-    if ((itel == itmax) || ((maxr - minr) < eps)) {
+    if ((itel == itmax) || ((fold - fnew) < eps)) {
       break
     }
     itel <- itel + 1
-    s <- 1 / r
-    a <- t(r * t(s * a))
+    fold <- fnew
+    xold <- xnew
+    dold <- dnew
+    cold <- cnew
+    rold <- rnew
   }
-  return(list(s = (maxr + minr) / 2.0, itel = itel))
+  return(list(
+    x = xnew,
+    f = fnew,
+    mu = mu,
+    delsq = delsq
+  ))
 }
 
-smacofDoubleCenter <- function(a) {
-  ra <- apply(a, 1, mean)
-  rb <- apply(a, 2, mean)
-  rr <- mean(a)
-  return(a - outer(ra, rb, "+") + rr)
-}
-
-smacofMakeEij <- function(i, j, n) {
-  e <- matrix(0, n, n)
-  if (i == j) {
-    e[i, i] <- 1
-  } else {
-    e[i, j] <- e[j, i] <- 1
+smacofRSpectraSupport <- function(x, wght) {
+  n <- nrow(wght)
+  y <- matrix(x, n, n)
+  z <- rep(0, length(x))
+  for (i in 1:(n - 1)) {
+    for (j in (i + 1):n) {
+      a <- as.vector(smacofMakeAij(i, j, n))
+      d <- wght[i, j] * (y[i, i] + y[j, j] - y[i, j] - y[j, i])
+      z <- z + d * a
+    }
   }
-  return(e)
+  return(z)
 }

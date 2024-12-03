@@ -1,32 +1,24 @@
-source("smacofEigenRoutines.R")
-source("smacofNNLS.R")
-source("smacofSimpleUtilities.R")
-source("smacofIOUtilities.R")
-source("smacofDataUtilities.R")
+source("../smacofUT(utilities)/smacofEigenRoutines.R")
+source("../smacofUT(utilities)/smacofNNLS.R")
+source("../smacofUT(utilities)/smacofSimpleUtilities.R")
+source("../smacofUT(utilities)/smacofIOUtilities.R")
+source("../smacofUT(utilities)/smacofDataUtilities.R")
 
-data <- c(1, 2, NA, 1, 3, 1, 1, 4, NA, 2, 3, 2, 2, 4, 1, 3, 4, NA)
-data <- matrix(data, 6, 3, byrow = TRUE)
-dat2 <- c(1, 2, 1, 1, 3, 1, 1, 4, 1, 2, 3, 2, 2, 4, 1, 3, 4, 1)
-dat2 <- matrix(dat2, 6, 3, byrow = TRUE)
+data(ekman, package = "smacof")
+ekman <- as.matrix(1 - ekman)
 
 library("RSpectra")
+library("quadprog")
 
-smacofTorgerson <- function(data,
+smacofTorgerson <- function(delta,
                             p = 2,
                             itmax = 5,
                             eps = 1e-10,
-                            verbose = TRUE,
-                            jtmax = 5,
-                            jeps = 1e-10,
-                            jverbose = TRUE,
-                            ktmax = 5,
-                            keps = 1E-10,
-                            kverbose = TRUE) {
-  n <- max(data[, 1:2])
-  m <- nrow(data)
-  indi <- which(is.na(data[, 3]))
-  indn <- data[indi, 1:2]
-  nmis <- length(indi)
+                            verbose = TRUE) {
+  n <- nrow(delta)
+  delsq <- delta^2
+  indi <- which(is.na(delta))
+  nmis <- length(indi) / 2
   if (nmis > 0) {
     cmat <- matrix(0, nmis, nmis)
     for (k in 1:(nmis - 1)) {
@@ -35,19 +27,17 @@ smacofTorgerson <- function(data,
         indl <- sort(indn[l, ])
         coml <- length(which(indk == indl))
         if (coml == 0) {
-          cmat[k, l] <- cmat[l, k] <- 1 / (n ^ 2)
+          cmat[k, l] <- cmat[l, k] <- 1 / (n^2)
         }
         if (coml == 1) {
-          cmat[k, l] <- cmat[l, k] <- 1 / (n ^ 2) - 1 / (2 * n)
+          cmat[k, l] <- cmat[l, k] <- 1 / (n^2) - 1 / (2 * n)
         }
         if (coml == 2) {
-          cmat[k, l] <- cmat[l, k] <- 1 / 2 + 1 / (n ^ 2) - 1 / n
+          cmat[k, l] <- cmat[l, k] <- 1 / 2 + 1 / (n^2) - 1 / n
         }
       }
     }
-    diag(cmat) <- 1 / 2 + 1 / (n ^ 2) - 1 / n
-    labd <- max(rowSums(abs(cmat)))
-    told <- rep(0, nmis)
+    diag(cmat) <- 1 / 2 + 1 / (n^2) - 1 / n
   }
   delta <- matrix(0, n, n)
   for (k in 1:m) {
@@ -57,21 +47,11 @@ smacofTorgerson <- function(data,
       delta[data[k, 1], data[k, 2]] <- delta[data[k, 2], data[k, 1]] <- data[k, 3]
     }
   }
-  bzero <- -smacofDoubleCenter(delta ^ 2) / 2
-  if (jverbose) {
-    cat("Initial Iterations Eckart-Young\n")
-  }
-  h <- smacofSymmetricEckartYoung(
-    bzero,
-    p = p,
-    bnd = TRUE,
-    itmax = jtmax,
-    eps = jeps,
-    verbose = jverbose
-  )
-  xold <- h$x
+  bzero <- -smacofDoubleCenter(delta^2) / 2
+  h <- eigs_sym(bzero, p, which = "LA")
+  xold <- h$vectors %*% diag(sqrt(pmax(0, h$values)))
   rold <- bzero - tcrossprod(xold)
-  fold <- sum(rold ^ 2)
+  fold <- sum(rold^2)
   if (nmis == 0) {
     return(list(x = xold, f = fold))
   }
@@ -79,46 +59,22 @@ smacofTorgerson <- function(data,
     bcof <- rep(0, nmis)
     itel <- 1
     repeat {
-      cons <- sum(rold ^ 2)
       sdif <- bzero - tcrossprod(xold)
       for (k in 1:nmis) {
         bcof[k] <- -sdif[indn[k, 1], indn[k, 2]]
       }
-      if (kverbose) {
-        cat("Inner Iterations Missing Data\n")
-      }
-      h <- smacofNonnegativeQP(
-        cmat,
-        bcof,
-        cons = cons,
-        xold = told,
-        bnd = labd,
-        itmax = ktmax,
-        eps = keps,
-        verbose = kverbose
-      )
-      tnew <- h$x
-      fmid <- h$f
+      h <- solve.QP(cmat, -bcof, diag(nmis), rep(0, nmis))
+      theta <- pmax(0, h$solution)
       for (k in 1:nmis) {
-        delta[indn[k, 1], indn[k, 2]] <- delta[indn[k, 2], indn[k, 1]] <- sqrt(tnew[k])
+        delta[indn[k, 1], indn[k, 2]] <- delta[indn[k, 2], indn[k, 1]] <- sqrt(theta[k])
       }
-      bnew <- -smacofDoubleCenter(delta ^ 2) / 2
-      if (jverbose) {
-        cat("Inner Iterations Eckart-Young\n")
-      }
-      h <- smacofSymmetricEckartYoung(
-        bnew,
-        p = p,
-        kold = qr.Q(qr(xold)),
-        bnd = TRUE,
-        itmax = jtmax,
-        eps = jeps,
-        verbose = jverbose
-      )
-      print(c(h$f, h$b))
-      xnew <- h$x
+      bnew <- -smacofDoubleCenter(delta^2) / 2
+      rmid <- bnew - tcrossprod(xold)
+      fmid <- sum(rmid^2)
+      h <- eigs_sym(bnew, p, which = "LA")
+      xnew <- h$vectors %*% diag(sqrt(pmax(0, h$values)))
       rnew <- bnew - tcrossprod(xnew)
-      fnew <- sum(rnew ^ 2)
+      fnew <- sum(rnew^2)
       if (verbose) {
         cat(
           "itel ",
@@ -138,9 +94,8 @@ smacofTorgerson <- function(data,
       itel <- itel + 1
       fold <- fnew
       xold <- xnew
-      told <- tnew
       rold <- rnew
     }
   }
-  return(list(x = h$x, f = h$f))
+  return(list(x = xnew, f = fnew, delta = delta))
 }
