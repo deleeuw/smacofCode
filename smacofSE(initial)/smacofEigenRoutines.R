@@ -1,1 +1,0 @@
-../smacofUT(utilities)/smacofEigenRoutines.R
