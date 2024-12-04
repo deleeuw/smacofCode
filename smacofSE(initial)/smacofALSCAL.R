@@ -1,13 +1,3 @@
-source("../smacofUT(utilities)/smacofEigenRoutines.R")
-source("../smacofUT(utilities)/smacofNNLS.R")
-source("../smacofUT(utilities)/smacofSimpleUtilities.R")
-source("../smacofUT(utilities)/smacofIOUtilities.R")
-source("../smacofUT(utilities)/smacofDataUtilities.R")
-
-source("smacofMaximumSum.R")
-
-data(ekman, package = "smacof")
-ekman <- as.matrix(1 - ekman)
 
 smacofALSCAL <- function(delta,
                          p = 2,

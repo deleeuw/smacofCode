@@ -1,10 +1,3 @@
-source("../smacofUT(utilities)/smacofEigenRoutines.R")
-source("../smacofUT(utilities)/smacofNNLS.R")
-source("../smacofUT(utilities)/smacofSimpleUtilities.R")
-source("../smacofUT(utilities)/smacofIOUtilities.R")
-source("../smacofUT(utilities)/smacofDataUtilities.R")
-
-library(RSpectra)
 
 smacofMaximumSum <- function(delta, p = 2, wght = NULL) {
   n <- nrow(delta)
