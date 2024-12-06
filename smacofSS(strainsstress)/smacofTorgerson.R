@@ -1,90 +1,96 @@
+data(ekman, package = "smacof")
+ekman <- as.matrix(1 - ekman)
+naman <- ekman
+naman[outer(1:14, 1:14, function(i, j) abs(i - j) == 1)] <- NA
+v1 <- matrix(0,14,14)
+v1[outer(1:14, 1:14, function(i, j) abs(i - j) == 1)] <- -1
+diag(v1) <- -rowSums(v1)
+v2 <- matrix(0,14,14)
+v2[outer(1:14, 1:14, function(i, j) abs(i - j) > 5)] <- -1
+diag(v2) <- -rowSums(v2)
+
+
+library("RSpectra")
+library("nnls")
 
 smacofTorgerson <- function(delta,
+                            vmat = diag(nrow(delta)) - (1 / nrow(delta)),
                             p = 2,
                             itmax = 5,
                             eps = 1e-10,
                             verbose = TRUE) {
   n <- nrow(delta)
+  itel <- 1
+  nn  <- n^2
   delsq <- delta^2
-  indi <- which(is.na(delta))
-  nmis <- length(indi) / 2
-  if (nmis > 0) {
-    cmat <- matrix(0, nmis, nmis)
-    for (k in 1:(nmis - 1)) {
-      indk <- sort(indn[k, ])
-      for (l in (k + 1):nmis) {
-        indl <- sort(indn[l, ])
-        coml <- length(which(indk == indl))
-        if (coml == 0) {
-          cmat[k, l] <- cmat[l, k] <- 1 / (n^2)
-        }
-        if (coml == 1) {
-          cmat[k, l] <- cmat[l, k] <- 1 / (n^2) - 1 / (2 * n)
-        }
-        if (coml == 2) {
-          cmat[k, l] <- cmat[l, k] <- 1 / 2 + 1 / (n^2) - 1 / n
-        }
+  vinv <- solve(vmat + (1 / n)) - (1 / n)
+  indi <- NULL
+  for (j in 1:(n - 1)) {
+    for (i in (j + 1):n) {
+      if (is.na(delta[i, j])) {
+        indi <- rbind(indi, c(i, j, 0))
       }
     }
-    diag(cmat) <- 1 / 2 + 1 / (n^2) - 1 / n
   }
-  delta <- matrix(0, n, n)
-  for (k in 1:m) {
-    if (is.na(data[k, 3])) {
-      delta[data[k, 1], data[k, 2]] <- delta[data[k, 2], data[k, 1]] <- 0
-    } else {
-      delta[data[k, 1], data[k, 2]] <- delta[data[k, 2], data[k, 1]] <- data[k, 3]
+  nmis <- ifelse(is.null(indi), 0, nrow(indi))
+  if (nmis > 0) {
+    amat <- matrix(0, nn, nmis)
+    for (k in 1:nmis) {
+      ind1 <- indi[k, 1]
+      ind2 <- indi[k, 2]
+      vv <- outer(vmat[, ind1], vmat[, ind2])
+      vv <- vv + t(vv)
+      vv <- vv / 2
+      amat[, k] <- as.vector(vv)
     }
   }
-  bzero <- -smacofDoubleCenter(delta^2) / 2
+  dzero <- ifelse(is.na(delsq), 0, delsq)
+  bzero <- -(vmat %*% dzero %*% vmat) / 2
   h <- eigs_sym(bzero, p, which = "LA")
   xold <- h$vectors %*% diag(sqrt(pmax(0, h$values)))
   rold <- bzero - tcrossprod(xold)
   fold <- sum(rold^2)
   if (nmis == 0) {
-    return(list(x = xold, f = fold))
+    x <- vinv %*% xold
+    return(list(x = x, d = dist(x), f = fold))
   }
-  if (nmis > 0) {
-    bcof <- rep(0, nmis)
-    itel <- 1
-    repeat {
-      sdif <- bzero - tcrossprod(xold)
-      for (k in 1:nmis) {
-        bcof[k] <- -sdif[indn[k, 1], indn[k, 2]]
-      }
-      h <- solve.QP(cmat, -bcof, diag(nmis), rep(0, nmis))
-      theta <- pmax(0, h$solution)
-      for (k in 1:nmis) {
-        delta[indn[k, 1], indn[k, 2]] <- delta[indn[k, 2], indn[k, 1]] <- sqrt(theta[k])
-      }
-      bnew <- -smacofDoubleCenter(delta^2) / 2
-      rmid <- bnew - tcrossprod(xold)
-      fmid <- sum(rmid^2)
-      h <- eigs_sym(bnew, p, which = "LA")
-      xnew <- h$vectors %*% diag(sqrt(pmax(0, h$values)))
-      rnew <- bnew - tcrossprod(xnew)
-      fnew <- sum(rnew^2)
-      if (verbose) {
-        cat(
-          "itel ",
-          formatC(itel, format = "d"),
-          "fold ",
-          formatC(fold, digits = 10, format = "f"),
-          "fmid ",
-          formatC(fmid, digits = 10, format = "f"),
-          "fnew ",
-          formatC(fnew, digits = 10, format = "f"),
-          "\n"
-        )
-      }
-      if ((itel == itmax) || ((fold - fnew) < eps)) {
-        break
-      }
-      itel <- itel + 1
-      fold <- fnew
-      xold <- xnew
-      rold <- rnew
+  repeat {
+    h <- nnls(amat, as.vector(rold))
+    theta <- h$x
+    fmid <- h$deviance
+    dnew <- dzero
+    for (k in 1:nmis) {
+      ind1 <- indi[k, 1]
+      ind2 <- indi[k, 2]
+      dnew[ind1, ind2] <- dnew[ind2, ind1] <- theta[k]
     }
+    bnew <- -(vmat %*% dnew %*% vmat) / 2
+    h <- eigs_sym(bnew, p, which = "LA")
+    xnew <- h$vectors %*% diag(sqrt(pmax(0, h$values)))
+    cnew <- tcrossprod(xnew)
+    rnew <- bzero - tcrossprod(xnew)
+    fnew <- sum((bnew - cnew)^2)
+    if (verbose) {
+      cat(
+        "itel ",
+        formatC(itel, format = "d"),
+        "fold ",
+        formatC(fold, digits = 10, format = "f"),
+        "fmid ",
+        formatC(fmid, digits = 10, format = "f"),
+        "fnew ",
+        formatC(fnew, digits = 10, format = "f"),
+        "\n"
+      )
+    }
+    if ((itel == itmax) || ((fold - fnew) < eps)) {
+      break
+    }
+    itel <- itel + 1
+    fold <- fnew
+    xold <- xnew
+    rold <- rnew
   }
-  return(list(x = xnew, f = fnew, delta = delta))
+  x <- vinv %*% xold
+  return(list(x = x, f = fnew, d = dist(x), delta = dnew))
 }
