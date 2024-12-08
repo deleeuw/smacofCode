@@ -9,7 +9,7 @@ delta <- as.matrix(1 - ekman)
 wgth <- weight(delta, 0)
 
 
-source("smacofAccelerate.R")
+source("smacofFA.R")
 
 runner <- function(delta, wgth, itmax = 10000) {
   h1 <- smacofAccelerate(delta, wgth = wgth, opt = 1, verbose = 1, itmax = itmax)
