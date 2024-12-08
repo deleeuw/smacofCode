@@ -1,0 +1,48 @@
+---
+title: "aa"
+format: pdf
+---
+$$
+d_{ij}(\theta)=\sqrt{\sum_{s=1}^p\theta_s'K_s'A_{ij}K_s\theta_s}
+$$
+
+$$
+\mathcal{D}_sd_{ij}(\theta)=d_{ij}^{-1}(\theta)K_s'A_{ij}K_s\theta_s
+$$
+$$
+\mathcal{D}_{st}d_{ij}(\theta)=d_{ij}^{-1}(\theta)K_s'A_{ij}K_s\delta^{st}-d_{ij}^{-3}(\theta)K_s'A_{ij}K_s\theta_s\theta_t'K_t'A_{ij}K_t
+$$
+$$
+\mathcal{D}_s\rho(\theta)=K_s'B(\theta)K_s
+$$
+$$
+\mathcal{D}_{st}\rho(\theta)=
+\mathop{\sum\sum}_{1\leq i<j\leq n}w_{ij}\frac{\delta_{ij}}{d_{ij}(\theta)}\left\{\delta^{st}K_s'A_{ij}K_s-\frac{K_s'A_{ij}K_s\theta_s\theta_t'K_t'A_{ij}K_t}{d_{ij}^2(\theta)}\right\}
+$$
+$$
+\sigma(\theta)=1-\mathop{\sum\sum}_{1\leq i<j\leq n}w_{ij}\delta_{ij}d_{ij}(\theta)+
+\frac12\sum_{s=1}^p\theta_s'\theta_s
+$$
+
+```{r}
+smacofMakeBasisMatrices <- function(n, p = 2, wght = 1 - diag(n)) {
+  k <- as.list(1:2)
+  v <- -wght
+  diag(v) <- -rowSums(v)
+  for (s in 1:p) {
+    nr <- n - (p - 1)
+    nc <- nr - 1
+    ks <- matrix(rnorm(nr * nc, nr, nc))
+    ks <- apply(ks, 2, function(x)
+      x - mean(x))
+    cs <- crossprod(ks, (v %*% ks))
+    es <- eigen(cs)
+    zs <- es$vectors
+    ls <- 1 / sqrt(es$values)
+    ks <- ks %*% zs %*% diag(ls) %*% t(zs)
+    k[[p]] <- rbind(matrix(0, p - 1, nc), ks)
+  }
+  return(k)
+}
+print(smacofMakeBasisMatrices(4))
+```
